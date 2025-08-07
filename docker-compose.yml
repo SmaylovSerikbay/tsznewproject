@@ -1,0 +1,26 @@
+version: '3.3'
+
+services:
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://tsz2user:password123@db:5432/tsz2
+
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=tsz2
+      - POSTGRES_USER=tsz2user
+      - POSTGRES_PASSWORD=password123
+
+volumes:
+  postgres_data: 

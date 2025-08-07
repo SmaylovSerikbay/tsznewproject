@@ -1,0 +1,41 @@
+<!-- Chat Modal -->
+<div id="chatModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
+  <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeModal('chatModal')"></div>
+    
+    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+    
+    <div class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full">
+      <div class="bg-white">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <div class="flex justify-between items-center">
+            <h2 class="text-xl font-semibold text-gray-900" id="chatTitle">Чат</h2>
+            <button onclick="closeModal('chatModal')" class="text-gray-400 hover:text-gray-600">
+              <i class="ri-close-line text-xl"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="h-96 flex flex-col">
+          <div class="flex-1 overflow-y-auto p-4 space-y-2" id="chatMessages">
+            <!-- Messages will be loaded dynamically -->
+          </div>
+          
+          <form onsubmit="sendMessage(event)" class="border-t border-gray-200 p-4">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            <div class="flex space-x-2">
+              <input type="text" 
+                     class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                     placeholder="Введите сообщение..." 
+                     id="messageInput" 
+                     name="message">
+              <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <i class="ri-send-plane-fill"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

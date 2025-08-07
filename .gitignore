@@ -1,0 +1,75 @@
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Если используется PostgreSQL
+*.psql
+
+# Если используется MySQL
+*.mysql
+
+# Media files (загруженные пользователями)
+media/
+
+# Static files (собранные)
+staticfiles/
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Backup files
+*.bak
+*.backup
+
+# Temporary files
+*.tmp
+*.temp
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+
+# Test cache
+.pytest_cache/
+
+# Node modules (если используется фронтенд)
+node_modules/
+
+# Compiled CSS/JS
+*.css.map
+*.js.map
+
+# Logs
+logs/
+*.log
+
+# Database migrations (опционально - раскомментировать если нужно)
+# main/migrations/
+
+# Local development settings
+local_settings.py
+settings_local.py 

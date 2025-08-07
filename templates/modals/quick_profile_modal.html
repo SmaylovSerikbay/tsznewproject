@@ -1,0 +1,127 @@
+<!-- Quick Profile Modal -->
+<div id="quickProfileModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
+  <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeModal('quickProfileModal')"></div>
+    
+    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+    
+    <div class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+      <div class="bg-white px-6 pt-6 pb-4">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold text-gray-900" id="quickProfileTitle">Профиль исполнителя</h2>
+          <button onclick="closeModal('quickProfileModal')" class="text-gray-400 hover:text-gray-600">
+            <i class="ri-close-line text-xl"></i>
+          </button>
+        </div>
+        
+        <div id="quickProfileContent" class="max-h-96 overflow-y-auto">
+          <!-- Контент будет загружаться динамически -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function openQuickProfileModal(userId) {
+  const modal = document.getElementById('quickProfileModal');
+  const content = document.getElementById('quickProfileContent');
+  
+  // Показываем загрузку
+  content.innerHTML = '<div class="text-center py-12"><i class="ri-loader-4-line text-2xl animate-spin"></i><p class="mt-2 text-gray-600">Загрузка профиля...</p></div>';
+  
+  // Загружаем данные профиля
+  fetch(`/profile/${userId}/quick/`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        content.innerHTML = generateQuickProfileHTML(data.profile);
+      } else {
+        content.innerHTML = '<div class="text-center py-12 text-red-600"><i class="ri-error-warning-line text-4xl mb-4 block"></i><p>Ошибка загрузки профиля</p></div>';
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      content.innerHTML = '<div class="text-center py-12 text-red-600"><i class="ri-error-warning-line text-4xl mb-4 block"></i><p>Ошибка загрузки профиля</p></div>';
+    });
+  
+  modal.classList.remove('hidden');
+}
+
+function generateQuickProfileHTML(profile) {
+  return `
+    <div class="space-y-6">
+      <!-- Основная информация -->
+      <div class="flex items-center space-x-4 pb-4 border-b border-gray-200">
+        <div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center border-2 border-white shadow-sm">
+          <i class="ri-user-line text-2xl text-blue-600"></i>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-lg font-semibold text-gray-900 mb-1">${profile.name}</h3>
+          <div class="flex flex-wrap gap-3 text-sm text-gray-600 mb-2">
+            <span class="flex items-center"><i class="ri-map-pin-line mr-1"></i> ${profile.city || 'Не указан'}</span>
+            <span class="flex items-center"><i class="ri-star-fill mr-1 text-yellow-400"></i> ${profile.rating} (${profile.reviews_count} отзывов)</span>
+          </div>
+          <span class="inline-block bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-medium">
+            ${profile.service_type || 'Не указана'}
+          </span>
+        </div>
+      </div>
+      
+      <!-- Статистика -->
+      <div class="grid grid-cols-3 gap-3">
+        <div class="bg-gray-50 p-3 rounded-lg text-center">
+          <div class="text-xl font-bold text-blue-600 mb-1">${profile.completed_orders}</div>
+          <div class="text-xs text-gray-600">Выполнено</div>
+        </div>
+        <div class="bg-gray-50 p-3 rounded-lg text-center">
+          <div class="text-xl font-bold text-blue-600 mb-1">${profile.portfolio_count}</div>
+          <div class="text-xs text-gray-600">Фото</div>
+        </div>
+        <div class="bg-gray-50 p-3 rounded-lg text-center">
+          <div class="text-xl font-bold text-blue-600 mb-1">${profile.tariffs_count}</div>
+          <div class="text-xs text-gray-600">Тарифов</div>
+        </div>
+      </div>
+      
+      <!-- О себе -->
+      ${profile.bio ? `
+      <div style="margin-bottom: 20px;">
+        <h4 style="margin: 0 0 10px 0; color: #1a1a1a; font-size: 1rem;">О себе</h4>
+        <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; line-height: 1.5; color: #495057; font-size: 0.9rem; max-height: 100px; overflow-y: auto;">
+          ${profile.bio}
+        </div>
+      </div>
+      ` : ''}
+      
+      <!-- Тарифы -->
+      ${profile.tariffs && profile.tariffs.length > 0 ? `
+      <div style="margin-bottom: 20px;">
+        <h4 style="margin: 0 0 10px 0; color: #1a1a1a; font-size: 1rem;">Тарифы</h4>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          ${profile.tariffs.map(tariff => `
+            <div style="background: white; padding: 10px; border-radius: 6px; border: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-weight: 600; color: #1a1a1a; font-size: 0.9rem;">${tariff.name}</div>
+                ${tariff.description ? `<div style="color: #6c757d; font-size: 0.8rem; margin-top: 2px;">${tariff.description}</div>` : ''}
+              </div>
+              <div style="color: var(--primary-color); font-weight: 700; font-size: 1rem;">${tariff.price} ₸</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      ` : ''}
+      
+      <!-- Действия -->
+      <div style="display: flex; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e9ecef;">
+        <a href="/profile/${profile.id}/" class="btn accent" style="flex: 1; text-align: center; padding: 10px 16px; font-size: 0.9rem;">
+          <i class="ri-user-line"></i> Полный профиль
+        </a>
+        <button onclick="closeModal('quickProfileModal')" class="btn outline" style="padding: 10px 16px; font-size: 0.9rem;">
+          Закрыть
+        </button>
+      </div>
+    </div>
+  `;
+}
+</script> 

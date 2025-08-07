@@ -1,0 +1,230 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отмена заказа — Той со звездой</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Touch device styles -->
+    <style>
+      @media (pointer: coarse) {
+        .mobile-menu-toggle {
+          min-width: 24px;
+          min-height: 24px;
+        }
+      }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu -->
+    <div class="mobile-menu">
+        <div class="mobile-menu-content">
+            <nav class="mobile-nav">
+                <a href="{% url 'main:index' %}" class="mobile-nav-link">
+                    <i class="ri-home-line"></i>
+                    <span>Главная</span>
+                </a>
+                <a href="{% url 'main:catalog' %}" class="mobile-nav-link">
+                    <i class="ri-group-line"></i>
+                    <span>Исполнители</span>
+                </a>
+                {% if user.is_authenticated %}
+                    {% if user.user_type == 'customer' %}
+                        <a href="{% url 'main:dashboard' %}#create-order" class="mobile-nav-link">
+                            <i class="ri-add-circle-line"></i>
+                            <span>Создать заявку</span>
+                        </a>
+                    {% endif %}
+                    <div class="mobile-nav-dropdown">
+                        <button class="mobile-nav-dropdown-toggle">
+                            <div class="user-info">
+                                {% if user.profile_photo %}
+                                    <img src="{{ user.profile_photo.url }}" alt="{{ user.get_full_name }}" class="nav-avatar">
+                                {% else %}
+                                    <i class="ri-user-line"></i>
+                                {% endif %}
+                                <span>{{ user.get_full_name|default:user.phone_number }}</span>
+                            </div>
+                            <i class="ri-arrow-down-s-line"></i>
+                        </button>
+                        <div class="mobile-nav-dropdown-menu">
+                            <a href="{% url 'main:dashboard' %}" class="mobile-nav-link">
+                                <i class="ri-dashboard-line"></i>
+                                <span>Личный кабинет</span>
+                            </a>
+                            <a href="{% url 'main:logout' %}" class="mobile-nav-link">
+                                <i class="ri-logout-box-line"></i>
+                                <span>Выйти</span>
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{% url 'main:auth' %}" class="mobile-nav-link auth-link">
+                        <i class="ri-login-box-line"></i>
+                        <span>Войти по номеру телефона</span>
+                    </a>
+                {% endif %}
+            </nav>
+        </div>
+    </div>
+
+<header class="header">
+    <div class="container">
+      <div class="logo">Той со звездой</div>
+      <nav class="nav desktop-nav">
+        <a href="{% url 'main:index' %}" class="nav-link">
+          <i class="ri-home-line"></i>
+          <span>Главная</span>
+        </a>
+        <a href="{% url 'main:catalog' %}" class="nav-link">
+          <i class="ri-group-line"></i>
+          <span>Исполнители</span>
+        </a>
+        {% if user.is_authenticated %}
+          {% if user.user_type == 'customer' %}
+            <a href="{% url 'main:dashboard' %}#create-order" class="nav-link">
+              <i class="ri-add-circle-line"></i>
+              <span>Создать заявку</span>
+            </a>
+          {% endif %}
+          <div class="nav-dropdown">
+            <button class="nav-dropdown-toggle">
+              <div class="user-info">
+                {% if user.profile_photo %}
+                  <img src="{{ user.profile_photo.url }}" alt="{{ user.get_full_name }}" class="nav-avatar">
+                {% else %}
+                  <i class="ri-user-line"></i>
+                {% endif %}
+                <span>{{ user.get_full_name|default:user.phone_number }}</span>
+              </div>
+              <i class="ri-arrow-down-s-line"></i>
+            </button>
+            <div class="nav-dropdown-menu">
+              <a href="{% url 'main:dashboard' %}">
+                <i class="ri-dashboard-line"></i>
+                <span>Личный кабинет</span>
+              </a>
+              <a href="{% url 'main:logout' %}">
+                <i class="ri-logout-box-line"></i>
+                <span>Выйти</span>
+              </a>
+            </div>
+          </div>
+        {% else %}
+          <a href="{% url 'main:auth' %}" class="nav-link auth-link">
+            <i class="ri-login-box-line"></i>
+            <span>Войти по номеру телефона</span>
+          </a>
+        {% endif %}
+      </nav>
+      <button class="mobile-menu-toggle" aria-label="Открыть меню">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+    <main class="main">
+        <div class="container">
+            <div class="confirmation-dialog">
+                <h1>Отмена заказа</h1>
+                <p>Вы действительно хотите отменить заказ "{{ order.title }}"?</p>
+                <p class="warning">Это действие нельзя будет отменить.</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="button-group">
+                        <button type="submit" class="btn accent">Да, отменить заказ</button>
+                        <a href="{% url 'main:order_detail' order.id %}" class="btn outline">Нет, вернуться назад</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>О нас</h3>
+                    <p>Той со звездой - платформа для поиска профессиональных исполнителей для вашего мероприятия.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Контакты</h3>
+                    <p>Email: <a href="mailto:miras.abildin@bk.ru">miras.abildin@bk.ru</a></p>
+                    <p>Телефон: <a href="tel:+77754184629">+7 (775)-418-46-29</a></p>
+                </div>
+                <div class="footer-section">
+                    <h3>Соцсети</h3>
+                    <div class="social-links">
+                        <a href="https://www.instagram.com/_miras_event_/" target="_blank"><i class="ri-instagram-line"></i></a>
+                        <a href="https://www.tiktok.com/@miras_abildin_?_t=ZM-8yOktSAtIhi&_r=1" target="_blank"><i class="ri-tiktok-line"></i></a>
+                        <a href="https://wa.me/77754184629" target="_blank">
+                            <i class="ri-whatsapp-line"></i>
+                        </a>  
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2024 Той со звездой. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <style>
+        .confirmation-dialog {
+            max-width: 600px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .confirmation-dialog h1 {
+            font-size: 1.8rem;
+            margin: 0 0 16px 0;
+            color: #dc2626;
+        }
+
+        .confirmation-dialog p {
+            color: #666;
+            margin: 0 0 24px 0;
+        }
+
+        .confirmation-dialog .warning {
+            color: #991b1b;
+            font-weight: 500;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            .confirmation-dialog {
+                margin: 20px;
+                padding: 24px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .button-group .btn {
+                width: 100%;
+            }
+        }
+
+
+    </style>
+    <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html> 

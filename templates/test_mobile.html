@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Тест мобильного меню{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="padding: 40px 20px; text-align: center;">
+        <h1 style="color: var(--primary-color); margin-bottom: 30px;">
+            🧪 Тест мобильного меню
+        </h1>
+        
+        <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-bottom: 30px;">
+            <h2 style="color: #333; margin-bottom: 20px;">Инструкции для тестирования:</h2>
+            
+            <div style="text-align: left; max-width: 600px; margin: 0 auto;">
+                <h3 style="color: var(--primary-color); margin-bottom: 15px;">📱 Мобильное меню:</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                        ✅ <strong>Бургер-меню:</strong> Нажмите на три полоски в правом верхнем углу
+                    </li>
+                    <li style="margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                        ✅ <strong>Анимация:</strong> Меню должно плавно выезжать справа
+                    </li>
+                    <li style="margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                        ✅ <strong>Закрытие:</strong> Кликните вне меню или нажмите Escape
+                    </li>
+                    <li style="margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                        ✅ <strong>Дропдауны:</strong> Если вы авторизованы, попробуйте дропдаун пользователя
+                    </li>
+                    <li style="margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                        ✅ <strong>Навигация:</strong> Кликните на любую ссылку - меню должно закрыться
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-bottom: 30px;">
+            <h2 style="color: #333; margin-bottom: 20px;">🔧 Проверьте следующие функции:</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; text-align: left;">
+                <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                    <h4 style="color: var(--primary-color); margin-bottom: 10px;">🎯 Touch-friendly</h4>
+                    <p style="margin: 0; color: #666;">Все кнопки должны иметь минимальную высоту 44px для удобного нажатия на мобильных устройствах</p>
+                </div>
+                
+                <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                    <h4 style="color: var(--primary-color); margin-bottom: 10px;">📱 Адаптивность</h4>
+                    <p style="margin: 0; color: #666;">Меню должно корректно отображаться на всех размерах экранов</p>
+                </div>
+                
+                <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                    <h4 style="color: var(--primary-color); margin-bottom: 10px;">⚡ Производительность</h4>
+                    <p style="margin: 0; color: #666;">Анимации должны быть плавными без лагов</p>
+                </div>
+                
+                <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                    <h4 style="color: var(--primary-color); margin-bottom: 10px;">🔒 Блокировка прокрутки</h4>
+                    <p style="margin: 0; color: #666;">При открытом меню страница не должна прокручиваться</p>
+                </div>
+            </div>
+        </div>
+        
+        <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+            <h2 style="color: #333; margin-bottom: 20px;">📋 Чек-лист тестирования:</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div style="padding: 15px; background: #e8f5e8; border-radius: 8px; border-left: 4px solid #28a745;">
+                    <h5 style="margin: 0 0 10px 0; color: #28a745;">✅ Открытие меню</h5>
+                    <p style="margin: 0; font-size: 14px; color: #666;">Бургер-меню анимируется в X</p>
+                </div>
+                
+                <div style="padding: 15px; background: #e8f5e8; border-radius: 8px; border-left: 4px solid #28a745;">
+                    <h5 style="margin: 0 0 10px 0; color: #28a745;">✅ Выдвижение панели</h5>
+                    <p style="margin: 0; font-size: 14px; color: #666;">Меню выезжает справа плавно</p>
+                </div>
+                
+                <div style="padding: 15px; background: #e8f5e8; border-radius: 8px; border-left: 4px solid #28a745;">
+                    <h5 style="margin: 0 0 10px 0; color: #28a745;">✅ Закрытие по клику</h5>
+                    <p style="margin: 0; font-size: 14px; color: #666;">Клик вне меню закрывает его</p>
+                </div>
+                
+                <div style="padding: 15px; background: #e8f5e8; border-radius: 8px; border-left: 4px solid #28a745;">
+                    <h5 style="margin: 0 0 10px 0; color: #28a745;">✅ Закрытие по Escape</h5>
+                    <p style="margin: 0; font-size: 14px; color: #666;">Клавиша Escape закрывает меню</p>
+                </div>
+                
+                <div style="padding: 15px; background: #e8f5e8; border-radius: 8px; border-left: 4px solid #28a745;">
+                    <h5 style="margin: 0 0 10px 0; color: #28a745;">✅ Автозакрытие</h5>
+                    <p style="margin: 0; font-size: 14px; color: #666;">Клик по ссылке закрывает меню</p>
+                </div>
+                
+                <div style="padding: 15px; background: #e8f5e8; border-radius: 8px; border-left: 4px solid #28a745;">
+                    <h5 style="margin: 0 0 10px 0; color: #28a745;">✅ Блокировка прокрутки</h5>
+                    <p style="margin: 0; font-size: 14px; color: #666;">Страница не прокручивается</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

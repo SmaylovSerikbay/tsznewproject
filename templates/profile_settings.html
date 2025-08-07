@@ -1,0 +1,435 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load l10n %}
+{% load i18n %}
+
+{% block title %}Настройки профиля — Той со звездой{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Back Button -->
+        <div class="mb-6">
+            <a href="javascript:history.back()" class="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium">
+                <i class="ri-arrow-left-line mr-2"></i>
+                Назад
+              </a>
+            </div>
+
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Настройки профиля</h1>
+            <p class="text-gray-600">Управляйте информацией о себе и настройками аккаунта</p>
+</div>
+
+        <!-- Profile Form -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+                <!-- Profile Photo -->
+                <div class="flex items-center space-x-6">
+                    <div class="relative">
+                        {% if user.profile_photo %}
+                            <img src="{{ user.profile_photo.url }}" alt="Фото профиля" class="w-24 h-24 rounded-full object-cover">
+                        {% else %}
+                            <div class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
+                                <i class="ri-user-line text-gray-500 text-3xl"></i>
+                            </div>
+                        {% endif %}
+                        <label for="profile_photo" class="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
+                            <i class="ri-camera-line"></i>
+                        </label>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">{{ user.get_full_name|default:user.phone_number }}</h3>
+                        <p class="text-gray-600">{{ user.user_type|title }}</p>
+                    </div>
+                </div>
+                <input type="file" id="profile_photo" name="profile_photo" accept="image/*" class="hidden">
+
+                <!-- Personal Information -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Личная информация</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="first_name" class="block text-sm font-medium text-gray-700 mb-2">
+                                Имя
+                            </label>
+                            <input 
+                                type="text" 
+                                id="first_name" 
+                                name="first_name" 
+                                value="{{ form.first_name.value|default:user.first_name }}"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Введите ваше имя"
+                            >
+                            {% if form.first_name.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.first_name.errors.0 }}</p>
+                            {% endif %}
+                </div>
+
+                        <div>
+                            <label for="last_name" class="block text-sm font-medium text-gray-700 mb-2">
+                                Фамилия
+                            </label>
+                            <input 
+                                type="text" 
+                                id="last_name" 
+                                name="last_name" 
+                                value="{{ form.last_name.value|default:user.last_name }}"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Введите вашу фамилию"
+                            >
+                            {% if form.last_name.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.last_name.errors.0 }}</p>
+                            {% endif %}
+                </div>
+
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                                Email
+                            </label>
+                            <input 
+                                type="email" 
+                                id="email" 
+                                name="email" 
+                                value="{{ form.email.value|default:user.email }}"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="your@email.com"
+                            >
+                            {% if form.email.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                            {% endif %}
+                </div>
+
+                        <div>
+                            <label for="phone_number" class="block text-sm font-medium text-gray-700 mb-2">
+                                Номер телефона
+                            </label>
+                            <input 
+                                type="tel" 
+                                id="phone_number" 
+                                name="phone_number" 
+                                value="{{ form.phone_number.value|default:user.phone_number }}"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="+7 (777) 777-77-77"
+                                readonly
+                            >
+                            <p class="mt-1 text-sm text-gray-500">Номер телефона нельзя изменить</p>
+                </div>
+
+                        <div>
+                            <label for="city" class="block text-sm font-medium text-gray-700 mb-2">
+                                Город
+                            </label>
+                            <select 
+                                id="city" 
+                                name="city" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                        <option value="">Выберите город</option>
+                        {% for city in cities %}
+                                    <option value="{{ city.name }}" {% if user.city and user.city.name == city.name %}selected{% endif %}>
+                                        {{ city.name }}
+                                    </option>
+                        {% endfor %}
+                    </select>
+                            {% if form.city.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.city.errors.0 }}</p>
+                            {% endif %}
+            </div>
+
+            {% if user.user_type == 'performer' %}
+                        <div>
+                            <label for="service_type" class="block text-sm font-medium text-gray-700 mb-2">
+                                Тип услуги
+                            </label>
+                            <select 
+                                id="service_type" 
+                                name="service_type" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                        <option value="">Выберите тип услуги</option>
+                                {% for service in service_types %}
+                                    <option value="{{ service.code }}" {% if user.service_type and user.service_type.code == service.code %}selected{% endif %}>
+                                        {{ service.name }}
+                                    </option>
+                        {% endfor %}
+                    </select>
+                            {% if form.service_type.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.service_type.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Bio -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">О себе</h2>
+                    <div>
+                        <label for="bio" class="block text-sm font-medium text-gray-700 mb-2">
+                            Описание
+                        </label>
+                        <textarea 
+                            id="bio" 
+                            name="bio" 
+                            rows="4"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Расскажите о себе, своем опыте и специализации..."
+                        >{{ form.bio.value|default:user.bio }}</textarea>
+                        {% if form.bio.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.bio.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Portfolio (for performers) -->
+                {% if user.user_type == 'performer' %}
+                <div class="border-t border-gray-200 pt-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Портфолио</h2>
+                    <div>
+                        <label for="portfolio_photos" class="block text-sm font-medium text-gray-700 mb-2">
+                            Фотографии работ
+                        </label>
+                        <input 
+                            type="file" 
+                            id="portfolio_photos" 
+                            name="portfolio_photos" 
+                            multiple 
+                            accept="image/*"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                        <p class="mt-1 text-sm text-gray-500">Выберите несколько фотографий для портфолио</p>
+                        {% if form.portfolio_photos.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.portfolio_photos.errors.0 }}</p>
+                        {% endif %}
+                </div>
+
+                    <!-- Existing Portfolio Photos -->
+                    {% if user.portfolio_photos.all %}
+                    <div class="mt-4">
+                        <h3 class="text-sm font-medium text-gray-700 mb-2">Текущие фотографии</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {% for photo in user.portfolio_photos.all %}
+                            <div class="relative group">
+                                <img src="{{ photo.image.url }}" alt="Портфолио" class="w-full h-32 object-cover rounded-lg">
+                                <button 
+                                    type="button" 
+                                    onclick="deletePortfolioPhoto({{ photo.id }})"
+                                    class="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                    <i class="ri-close-line text-sm"></i>
+                                </button>
+                            </div>
+                            {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+                </div>
+
+                <!-- Tariffs (for performers) -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Тарифы</h2>
+                    <div id="tariffs-container">
+                        {% for tariff in user.tariffs.all %}
+                        <div class="tariff-item border border-gray-200 rounded-lg p-4 mb-4">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Название тарифа</label>
+                                    <input 
+                                        type="text" 
+                                        name="tariff_name_{{ tariff.id }}" 
+                                        value="{{ tariff.name }}"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    >
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Цена (₸)</label>
+                                    <input 
+                                        type="number" 
+                                        name="tariff_price_{{ tariff.id }}" 
+                                        value="{{ tariff.price }}"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    >
+                                </div>
+                                <div class="flex items-end">
+                                    <button 
+                                        type="button" 
+                                        onclick="deleteTariff({{ tariff.id }})"
+                                        class="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+                                    >
+                                        <i class="ri-delete-bin-line mr-2"></i>
+                                        Удалить
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Описание</label>
+                                <textarea 
+                                    name="tariff_description_{{ tariff.id }}" 
+                                    rows="3"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >{{ tariff.description }}</textarea>
+                </div>
+            </div>
+                        {% endfor %}
+                    </div>
+                    <button 
+                        type="button" 
+                        onclick="addTariff()"
+                        class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                        <i class="ri-add-line mr-2"></i>
+                        Добавить тариф
+                    </button>
+                </div>
+                {% endif %}
+
+                <!-- Submit Button -->
+                <div class="border-t border-gray-200 pt-6">
+                    <div class="flex justify-end space-x-4">
+                        <button 
+                            type="button" 
+                            onclick="history.back()"
+                            class="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                        >
+                            Отмена
+                        </button>
+                        <button 
+                            type="submit"
+                            class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                        >
+                            <i class="ri-save-line mr-2"></i>
+                            Сохранить изменения
+                        </button>
+                    </div>
+            </div>
+        </form>
+    </div>
+</div>
+</div>
+
+<script>
+// Profile photo preview
+document.getElementById('profile_photo').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.querySelector('.relative img') || document.querySelector('.relative div');
+            if (img.tagName === 'IMG') {
+                img.src = e.target.result;
+            } else {
+                const newImg = document.createElement('img');
+                newImg.src = e.target.result;
+                newImg.className = 'w-24 h-24 rounded-full object-cover';
+                img.parentNode.replaceChild(newImg, img);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Add new tariff
+function addTariff() {
+    const container = document.getElementById('tariffs-container');
+    const tariffId = Date.now(); // Temporary ID
+    const tariffHtml = `
+        <div class="tariff-item border border-gray-200 rounded-lg p-4 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Название тарифа</label>
+                    <input 
+                        type="text" 
+                        name="new_tariff_name_${tariffId}" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        required
+                    >
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Цена (₸)</label>
+                    <input 
+                        type="number" 
+                        name="new_tariff_price_${tariffId}" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        required
+                    >
+                </div>
+                <div class="flex items-end">
+                    <button 
+                        type="button" 
+                        onclick="this.closest('.tariff-item').remove()"
+                        class="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+                    >
+                        <i class="ri-delete-bin-line mr-2"></i>
+                        Удалить
+                    </button>
+                </div>
+            </div>
+            <div class="mt-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Описание</label>
+                <textarea 
+                    name="new_tariff_description_${tariffId}" 
+                    rows="3"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                ></textarea>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', tariffHtml);
+}
+
+// Delete tariff
+function deleteTariff(tariffId) {
+    if (confirm('Вы уверены, что хотите удалить этот тариф?')) {
+        fetch(`/tariffs/${tariffId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Ошибка при удалении тарифа');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Произошла ошибка');
+        });
+    }
+}
+
+// Delete portfolio photo
+function deletePortfolioPhoto(photoId) {
+    if (confirm('Вы уверены, что хотите удалить эту фотографию?')) {
+        fetch(`/portfolio/${photoId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Ошибка при удалении фотографии');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Произошла ошибка');
+        });
+    }
+}
+</script>
+{% endblock %} 

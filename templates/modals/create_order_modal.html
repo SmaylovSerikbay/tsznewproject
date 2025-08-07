@@ -1,0 +1,337 @@
+<!-- Модальное окно для создания заказа -->
+<div id="createOrderModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-end md:items-center justify-center p-0 md:p-4 z-50 hidden">
+  <div class="bg-white rounded-t-3xl md:rounded-3xl shadow-2xl w-full md:max-w-lg max-h-[90vh] md:max-h-[85vh] overflow-y-auto relative" onclick="event.stopPropagation()">
+    <!-- Header -->
+    <div class="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 rounded-t-3xl">
+      <div class="flex justify-between items-center">
+        <div>
+          <h3 class="text-xl font-bold text-gray-900 flex items-center">
+            <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
+              <i class="ri-add-line text-white text-lg"></i>
+            </div>
+            Создать заявку
+          </h3>
+          <p class="text-gray-600 mt-1 text-sm">Заполните информацию о вашем мероприятии</p>
+        </div>
+        <button onclick="closeCreateOrderModal()" class="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center transition-colors">
+          <i class="ri-close-line text-gray-600 text-lg"></i>
+        </button>
+      </div>
+    </div>
+
+    <form id="createOrderForm" onsubmit="submitCreateOrder(event)" class="p-6">
+      {% csrf_token %}
+      
+      <!-- Основная информация -->
+      <div class="space-y-4">
+        <div>
+          <label for="orderTitle" class="block text-sm font-semibold text-gray-700 mb-2">Название мероприятия *</label>
+          <input type="text" id="orderTitle" name="title" class="w-full px-3 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-300" required 
+                 placeholder="Например: Свадьба Али и Айши">
+        </div>
+
+        <div class="grid grid-cols-1 gap-4">
+          <div>
+            <label for="eventType" class="block text-sm font-semibold text-gray-700 mb-2">Тип мероприятия *</label>
+            <select id="eventType" name="event_type" class="w-full px-3 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-300" required>
+              <option value="">Выберите тип</option>
+              <option value="wedding">Свадьба</option>
+              <option value="birthday">День рождения</option>
+              <option value="corporate">Корпоратив</option>
+              <option value="anniversary">Юбилей</option>
+              <option value="graduation">Выпускной</option>
+              <option value="other">Другое</option>
+            </select>
+          </div>
+          <div>
+            <label for="orderCity" class="block text-sm font-semibold text-gray-700 mb-2">Город *</label>
+            <select id="orderCity" name="city" class="w-full px-3 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-300" required>
+              <option value="">Выберите город</option>
+              {% for city in cities %}
+                <option value="{{ city.name }}">{{ city.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="eventDate" class="block text-sm font-semibold text-gray-700 mb-2">Дата мероприятия *</label>
+          <input type="date" id="eventDate" name="event_date" class="w-full px-3 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-300" required>
+        </div>
+
+        <div>
+          <label for="venue" class="block text-sm font-semibold text-gray-700 mb-2">Место проведения *</label>
+          <input type="text" id="venue" name="venue" class="w-full px-3 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-300" required
+                 placeholder="Адрес или название места проведения">
+        </div>
+
+        <div class="grid grid-cols-1 gap-4">
+          <div>
+            <label for="guestCount" class="block text-sm font-semibold text-gray-700 mb-2">Количество гостей *</label>
+            <input type="number" id="guestCount" name="guest_count" class="w-full px-3 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-300" required min="1" placeholder="50">
+          </div>
+          <div>
+            <label for="budget" class="block text-sm font-semibold text-gray-700 mb-2">Бюджет (₸) *</label>
+            <input type="number" id="budget" name="budget" class="w-full px-3 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-300" required min="0" placeholder="100000">
+          </div>
+        </div>
+
+        <!-- Услуги -->
+        <div id="servicesContainer">
+          <label class="block text-sm font-semibold text-gray-700 mb-3">Нужные услуги</label>
+          <div class="grid grid-cols-1 gap-2">
+            {% for service in service_types %}
+            <label class="service-option cursor-pointer">
+              <input type="checkbox" name="services" value="{{ service.code }}" class="hidden">
+              <div class="border-2 border-gray-200 rounded-lg p-3 hover:border-blue-300 hover:bg-blue-50 transition-all duration-300">
+                <div class="flex items-center">
+                  <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                    <i class="{{ service.icon|default:'ri-service-line' }} text-blue-600"></i>
+                  </div>
+                  <div class="flex-1">
+                    <div class="font-medium text-gray-900">{{ service.name }}</div>
+                  </div>
+                  <div class="w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center service-checkbox">
+                    <i class="ri-check-line text-white text-sm hidden"></i>
+                  </div>
+                </div>
+              </div>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div>
+          <label for="orderDescription" class="block text-sm font-semibold text-gray-700 mb-2">Описание мероприятия</label>
+          <textarea id="orderDescription" name="description" rows="3" class="w-full px-3 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-300 resize-none" 
+                    placeholder="Расскажите подробнее о вашем мероприятии, особых пожеланиях или требованиях..."></textarea>
+        </div>
+      </div>
+
+      <!-- Кнопки -->
+      <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-100">
+        <button type="button" onclick="closeCreateOrderModal()" class="px-4 py-2 border-2 border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-300 flex items-center text-sm">
+          <i class="ri-close-line mr-1"></i>
+          Отмена
+        </button>
+        <button type="submit" class="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 flex items-center shadow-lg text-sm">
+          <i class="ri-check-line mr-1"></i>
+          Создать заявку
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// Глобальные функции для модального окна
+function openCreateOrderModal() {
+  const createOrderModal = document.getElementById('createOrderModal');
+  if (createOrderModal) {
+    createOrderModal.classList.remove('hidden');
+    
+    // Установить минимальную дату (сегодня) если элемент существует
+    const eventDateElement = document.getElementById('eventDate');
+    if (eventDateElement) {
+      const today = new Date().toISOString().split('T')[0];
+      eventDateElement.min = today;
+    }
+  }
+}
+
+function closeCreateOrderModal() {
+  const createOrderModal = document.getElementById('createOrderModal');
+  if (createOrderModal) {
+    createOrderModal.classList.add('hidden');
+  }
+  
+  // Сбросить форму если она существует
+  const form = document.getElementById('createOrderForm');
+  if (form) {
+    form.reset();
+  }
+  
+  // Сбросить стили услуг
+  document.querySelectorAll('.service-option').forEach(option => {
+    const div = option.querySelector('.border-gray-200');
+    const checkbox = option.querySelector('.service-checkbox');
+    if (div && checkbox) {
+      div.classList.remove('border-blue-500', 'bg-blue-50');
+      checkbox.classList.remove('bg-blue-600', 'border-blue-600');
+      checkbox.classList.add('border-gray-300');
+      const icon = checkbox.querySelector('i');
+      if (icon) {
+        icon.classList.add('hidden');
+      }
+    }
+  });
+}
+
+// Обработка выбора услуг
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.service-option input[type="checkbox"]').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+      const option = this.closest('.service-option');
+      const div = option.querySelector('.border-gray-200');
+      const checkboxDiv = option.querySelector('.service-checkbox');
+      const icon = checkboxDiv.querySelector('i');
+      
+      if (this.checked) {
+        div.classList.add('border-blue-500', 'bg-blue-50');
+        checkboxDiv.classList.add('bg-blue-600', 'border-blue-600');
+        checkboxDiv.classList.remove('border-gray-300');
+        icon.classList.remove('hidden');
+      } else {
+        div.classList.remove('border-blue-500', 'bg-blue-50');
+        checkboxDiv.classList.remove('bg-blue-600', 'border-blue-600');
+        checkboxDiv.classList.add('border-gray-300');
+        icon.classList.add('hidden');
+      }
+    });
+  });
+});
+
+function submitCreateOrder(event) {
+  event.preventDefault();
+  
+  const submitButton = event.target.querySelector('button[type="submit"]');
+  const originalText = submitButton.innerHTML;
+  submitButton.innerHTML = '<i class="ri-loader-4-line mr-2 animate-spin"></i>Создаем...';
+  submitButton.disabled = true;
+  
+  // Собираем данные формы
+  const formData = new FormData(event.target);
+  
+  // Собираем выбранные услуги
+  const selectedServices = [];
+  document.querySelectorAll('#servicesContainer input[type="checkbox"]:checked').forEach(checkbox => {
+    selectedServices.push(checkbox.value);
+  });
+  
+  // Добавляем услуги к форме
+  formData.delete('services');
+  selectedServices.forEach(service => {
+    formData.append('services', service);
+  });
+  
+  fetch('{% url "main:create_order_request" %}', {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      closeCreateOrderModal();
+      showNotification('Заявка успешно создана!', 'success');
+      setTimeout(() => location.reload(), 1500);
+    } else {
+      showNotification(data.message || 'Ошибка при создании заявки', 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showNotification('Произошла ошибка при создании заявки', 'error');
+  })
+  .finally(() => {
+    submitButton.innerHTML = originalText;
+    submitButton.disabled = false;
+  });
+}
+
+function showNotification(message, type) {
+  // Удалить существующие уведомления
+  document.querySelectorAll('.notification').forEach(n => n.remove());
+  
+  // Создать уведомление
+  const notification = document.createElement('div');
+  notification.className = `notification fixed top-4 right-4 z-50 px-6 py-4 rounded-xl text-white shadow-lg ${
+    type === 'success' ? 'bg-green-600' : 'bg-red-600'
+  }`;
+  notification.innerHTML = `
+    <div class="flex items-center">
+      <i class="ri-${type === 'success' ? 'check' : 'error-warning'}-line mr-3 text-xl"></i>
+      <span>${message}</span>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Анимация появления
+  notification.style.transform = 'translateX(100%)';
+  notification.style.transition = 'transform 0.3s ease';
+  
+  setTimeout(() => {
+    notification.style.transform = 'translateX(0)';
+  }, 100);
+  
+  setTimeout(() => {
+    notification.style.transform = 'translateX(100%)';
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
+}
+
+// Инициализация обработчиков событий
+document.addEventListener('DOMContentLoaded', function() {
+  // Закрытие модального окна при клике вне его
+  const createOrderModal = document.getElementById('createOrderModal');
+  if (createOrderModal) {
+    createOrderModal.addEventListener('click', function(e) {
+      // Проверяем, что клик был именно на фон модального окна
+      if (e.target === this && !this.classList.contains('hidden')) {
+        closeCreateOrderModal();
+      }
+    });
+  }
+
+  // Закрытие по Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const escapeModal = document.getElementById('createOrderModal');
+      if (escapeModal && !escapeModal.classList.contains('hidden')) {
+        closeCreateOrderModal();
+      }
+    }
+  });
+});
+</script>
+
+<style>
+/* Анимации для модального окна */
+#createOrderModal {
+  pointer-events: auto;
+  transition: opacity 0.3s ease;
+}
+
+#createOrderModal > div {
+  pointer-events: auto;
+  transition: transform 0.3s ease;
+}
+
+
+
+/* Стили для чекбоксов услуг */
+.service-checkbox {
+  transition: all 0.2s ease;
+}
+
+.service-option:hover .service-checkbox {
+  border-color: #3b82f6;
+}
+
+/* Анимация для кнопок */
+button {
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+</style> 

@@ -1,0 +1,2901 @@
+{% load static %}
+{% load dict_extras %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Личный кабинет исполнителя — Той со звездой</title>
+                                                                                                                 <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20">
+                                                          <link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=18">
+                                                          <link rel="stylesheet" href="{% static 'css/mobile.css' %}?v=21">
+                                                          <link rel="stylesheet" href="{% static 'css/mobile-menu.css' %}?v=19">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  
+  <!-- Загружаем скрипты в head для раннего доступа к функциям -->
+  <script src="{% static 'js/main.js' %}?v=19"></script>
+  <script src="{% static 'js/mobile-menu.js' %}?v=20"></script>
+  <script src="{% static 'js/responsive.js' %}?v=18"></script>
+
+  <style>
+    /* Основные стили */
+    .dashboard-container {
+      margin: 60px auto 0;
+      padding: 20px;
+      box-sizing: border-box;
+      max-width: 1600px;
+      width: 100%;
+
+    }
+
+    /* Табы */
+    .tabs-container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      overflow: hidden;
+      max-width: 1600px;
+      min-height: 600px;
+      width: 100%;
+      margin: 0 auto;
+      box-sizing: border-box;
+
+    }
+
+     .tabs-header {
+      display: flex;
+       background: #f8f9fa;
+       border-bottom: 1px solid #e9ecef;
+       overflow-x: auto;
+       scrollbar-width: none;
+       -ms-overflow-style: none;
+     }
+
+     .tabs-header::-webkit-scrollbar {
+       display: none;
+     }
+
+     .tab-button {
+       flex: 1;
+       padding: 16px 24px;
+       background: none;
+       border: none;
+      font-size: 1rem;
+       font-weight: 500;
+       color: #6c757d;
+       cursor: pointer;
+       transition: all 0.2s;
+       position: relative;
+      white-space: nowrap;
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       gap: 8px;
+    }
+
+     .tab-button.active {
+       background: white;
+      color: var(--primary-color);
+       border-bottom: 2px solid var(--primary-color);
+     }
+
+     .tab-button:hover {
+       background: #e9ecef;
+     }
+
+     .tab-content {
+       display: none;
+       padding: 24px;
+       width: 100%;
+       max-width: 1600px;       
+       overflow-x: auto;
+     }
+     
+
+     /* Адаптивные стили для tab-content */
+     @media (max-width: 768px) {
+       .tab-content {
+         padding: 16px;
+         min-height: auto;
+         max-width: 100%;
+         width: 100%;
+         overflow-x: auto;
+         box-sizing: border-box;
+       }
+       
+       .tab-content .table-container {
+         overflow-x: auto;
+         border-radius: 8px;
+         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+         margin-bottom: 16px;
+       }
+
+       .tab-content .data-table {
+         font-size: 14px;
+         min-width: 200px; /* Фиксированная минимальная ширина для прокрутки */
+         width: 100%;
+       }
+
+       .tab-content .data-table th,
+       .tab-content .data-table td {
+         padding: 12px 8px;
+         font-size: 14px;
+         white-space: nowrap;
+         min-width: 100px; /* Минимальная ширина колонок */
+       }
+
+       /* Фиксированные ширины колонок для прокрутки */
+       .data-table th:nth-child(1),
+       .data-table td:nth-child(1) {
+         min-width: 200px;
+         width: 200px;
+       }
+
+       .data-table th:nth-child(2),
+       .data-table td:nth-child(2) {
+         min-width: 100px;
+         width: 100px;
+       }
+
+       .data-table th:nth-child(3),
+       .data-table td:nth-child(3) {
+         min-width: 120px;
+         width: 120px;
+       }
+
+       .data-table th:nth-child(4),
+       .data-table td:nth-child(4) {
+         min-width: 100px;
+         width: 100px;
+       }
+
+       .data-table th:nth-child(5),
+       .data-table td:nth-child(5) {
+         min-width: 100px;
+         width: 100px;
+       }
+
+       .data-table th:nth-child(6),
+       .data-table td:nth-child(6) {
+         min-width: 150px;
+         width: 150px;
+       }
+
+       .action-buttons {
+         display: flex;
+         gap: 8px;
+       }
+
+       .action-buttons .btn {
+         padding: 8px 12px;
+         font-size: 12px;
+         white-space: nowrap;
+         min-width: auto;
+       }
+
+       .status-badge {
+         font-size: 12px;
+         padding: 4px 8px;
+       }
+
+       .order-title {
+         font-size: 14px;
+       }
+
+       .order-event-type {
+         font-size: 12px;
+       }
+
+       .budget-amount {
+         font-size: 14px;
+       }
+     }
+
+     /* Стили для экранов меньше 570px - горизонтальная прокрутка */
+     @media (max-width: 570px) {
+       .tab-content {
+         padding: 12px;
+         max-width: 100%;
+         width: 100%;
+         overflow-x: auto;
+         box-sizing: border-box;
+       }
+       
+       .tab-content .table-container {
+         overflow-x: auto;
+         border-radius: 8px;
+         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+         margin-bottom: 12px;
+       }
+
+       .tab-content .data-table {
+         font-size: 13px;
+         min-width: 550px; /* Немного меньше для 570px */
+       }
+
+       .tab-content .data-table th,
+       .tab-content .data-table td {
+         padding: 10px 6px;
+         font-size: 13px;
+         white-space: nowrap;
+       }
+
+       /* Адаптируем ширины колонок */
+       .data-table th:nth-child(1),
+       .data-table td:nth-child(1) {
+         min-width: 180px;
+         width: 180px;
+       }
+
+       .data-table th:nth-child(2),
+       .data-table td:nth-child(2) {
+         min-width: 90px;
+         width: 90px;
+       }
+
+       .data-table th:nth-child(3),
+       .data-table td:nth-child(3) {
+         min-width: 100px;
+         width: 100px;
+       }
+
+       .data-table th:nth-child(4),
+       .data-table td:nth-child(4) {
+         min-width: 90px;
+         width: 90px;
+       }
+
+       .data-table th:nth-child(5),
+       .data-table td:nth-child(5) {
+         min-width: 90px;
+         width: 90px;
+       }
+
+       .data-table th:nth-child(6),
+       .data-table td:nth-child(6) {
+         min-width: 120px;
+         width: 120px;
+       }
+
+       .action-buttons {
+         display: flex;
+         gap: 6px;
+         flex-wrap: nowrap;
+       }
+
+       .action-buttons .btn {
+         padding: 6px 10px;
+         font-size: 11px;
+         white-space: nowrap;
+       }
+
+       .status-badge {
+         font-size: 11px;
+         padding: 3px 6px;
+       }
+
+       .order-title {
+         font-size: 13px;
+       }
+
+       .order-event-type {
+         font-size: 11px;
+       }
+
+       .budget-amount {
+         font-size: 13px;
+       }
+     }
+
+     /* Стили для экранов 375px и меньше - горизонтальная прокрутка */
+     @media (max-width: 375px) {
+       .tab-content {
+         padding: 8px;
+         max-width: 100%;
+         width: 100%;
+         overflow-x: auto;
+         box-sizing: border-box;
+       }
+       
+       .tab-content .table-container {
+         overflow-x: auto;
+         border-radius: 6px;
+         box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+         margin-bottom: 8px;
+       }
+
+       .tab-content .data-table {
+         font-size: 12px;
+         min-width: 500px; /* Минимальная ширина для прокрутки */
+       }
+
+       .tab-content .data-table th,
+       .tab-content .data-table td {
+         padding: 8px 4px;
+         font-size: 12px;
+         white-space: nowrap;
+       }
+
+       /* Адаптируем ширины колонок для очень маленьких экранов */
+       .data-table th:nth-child(1),
+       .data-table td:nth-child(1) {
+         min-width: 160px;
+         width: 160px;
+       }
+
+       .data-table th:nth-child(2),
+       .data-table td:nth-child(2) {
+         min-width: 80px;
+         width: 80px;
+       }
+
+       .data-table th:nth-child(3),
+       .data-table td:nth-child(3) {
+         min-width: 90px;
+         width: 90px;
+       }
+
+       .data-table th:nth-child(4),
+       .data-table td:nth-child(4) {
+         min-width: 80px;
+         width: 80px;
+       }
+
+       .data-table th:nth-child(5),
+       .data-table td:nth-child(5) {
+         min-width: 80px;
+         width: 80px;
+       }
+
+       .data-table th:nth-child(6),
+       .data-table td:nth-child(6) {
+         min-width: 100px;
+         width: 100px;
+       }
+
+       .action-buttons {
+         display: flex;
+         gap: 4px;
+         flex-wrap: nowrap;
+       }
+
+       .action-buttons .btn {
+         padding: 4px 8px;
+         font-size: 10px;
+         white-space: nowrap;
+       }
+
+       .status-badge {
+         font-size: 10px;
+         padding: 2px 4px;
+       }
+
+       .order-title {
+         font-size: 12px;
+       }
+
+       .order-event-type {
+         font-size: 10px;
+       }
+
+       .budget-amount {
+         font-size: 12px;
+       }
+     }
+
+     @media (max-width: 480px) {
+       .tab-content {
+         padding: 6px !important;
+         min-height: auto !important;
+       }
+       
+       .tab-content .data-table th,
+       .tab-content .data-table td {
+         padding: 4px 3px !important;
+         font-size: 10px !important;
+       }
+
+       /* Убираем min-width для маленьких экранов */
+       .data-table th:nth-child(1),
+       .data-table td:nth-child(1) {
+         max-width: 100px !important;
+         width: auto !important;
+       }
+
+       .data-table th:nth-child(2),
+       .data-table td:nth-child(2) {
+         width: auto !important;
+       }
+
+       .data-table th:nth-child(3),
+       .data-table td:nth-child(3) {
+         width: auto !important;
+       }
+
+       .data-table th:nth-child(4),
+       .data-table td:nth-child(4) {
+         width: auto !important;
+       }
+
+       .data-table th:nth-child(5),
+       .data-table td:nth-child(5) {
+         width: auto !important;
+       }
+
+       .data-table th:nth-child(6),
+       .data-table td:nth-child(6) {
+         width: auto !important;
+       }
+     }
+
+     @media (max-width: 375px) {
+       .tab-content {
+         padding: 2px !important;
+         min-height: auto !important;
+       }
+       
+       .tab-content .table-container {
+         margin-bottom: 4px !important;
+         border-radius: 2px !important;
+       }
+
+       .tab-content .data-table {
+         font-size: 8px !important;
+         table-layout: fixed !important;
+         width: 100% !important;
+       }
+
+       .tab-content .data-table th,
+       .tab-content .data-table td {
+         padding: 2px 1px !important;
+         font-size: 8px !important;
+         word-wrap: normal !important;
+         overflow-wrap: normal !important;
+         text-overflow: ellipsis !important;
+         overflow: hidden !important;
+       }
+
+       /* Полностью убираем все width ограничения */
+       .data-table th:nth-child(1),
+       .data-table td:nth-child(1),
+       .data-table th:nth-child(2),
+       .data-table td:nth-child(2),
+       .data-table th:nth-child(3),
+       .data-table td:nth-child(3),
+       .data-table th:nth-child(4),
+       .data-table td:nth-child(4),
+       .data-table th:nth-child(5),
+       .data-table td:nth-child(5),
+       .data-table th:nth-child(6),
+       .data-table td:nth-child(6) {
+         width: auto !important;
+         min-width: auto !important;
+         max-width: none !important;
+       }
+
+       .action-buttons {
+         flex-direction: column !important;
+         gap: 2px !important;
+       }
+
+       .action-buttons .btn {
+         padding: 1px 2px !important;
+         font-size: 7px !important;
+         height: auto !important;
+         min-height: auto !important;
+         width: 100% !important;
+       }
+
+       .status-badge {
+         font-size: 7px !important;
+         padding: 1px 2px !important;
+       }
+
+
+       .order-title {
+         font-size: 15px !important;
+       }
+
+    
+
+       .budget-amount {
+         font-size: 7px !important;
+       }
+     }
+
+     .tab-content.active {
+      display: block;
+    }
+
+    /* Таблицы - десктоп */
+    .table-container {
+      overflow-x: auto;
+      max-width: 100%;
+    }
+
+    .data-table {
+      width: 100%;
+      max-width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      table-layout: auto;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 12px 8px;
+      text-align: left;
+      border-bottom: 1px solid #e9ecef;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      vertical-align: top;
+    }
+
+    /* Адаптивные колонки для таблицы заявок */
+    .data-table th:nth-child(1), /* Название */
+    .data-table td:nth-child(1) {
+      width: 22%;
+      max-width: 220px;
+    }
+
+    /* Стили для названий заявок */
+    .order-title {
+      font-weight: 500;
+      color: #1a1a1a;
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+
+    .order-event-type {
+      font-size: 0.8rem;
+      color: #6c757d;
+      font-style: italic;
+    }
+
+    /* Стили для бюджета */
+    .budget-amount {
+      font-weight: 600;
+      color: var(--primary-color);
+      white-space: nowrap;
+    }
+
+    .data-table th:nth-child(2), /* Дата */
+    .data-table td:nth-child(2) {
+      width: 12%;
+    }
+
+    .data-table th:nth-child(3), /* Город */
+    .data-table td:nth-child(3) {
+      width: 15%;
+    }
+
+    .data-table th:nth-child(4), /* Бюджет */
+    .data-table td:nth-child(4) {
+      width: 18%;
+    }
+
+    .data-table th:nth-child(5), /* Статус */
+    .data-table td:nth-child(5) {
+      width: 10%;
+    }
+
+    .data-table th:nth-child(6), /* Действия */
+    .data-table td:nth-child(6) {
+      width: 25%;
+    }
+
+    .data-table th {
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #495057;
+    }
+
+    .data-table tr:hover {
+      background: #f8f9fa;
+    }
+
+    .status-badge {
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      white-space: nowrap;
+      display: inline-block;
+      text-align: center;
+    }
+
+    .status-new {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+
+    .status-in_progress {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .status-completed {
+      background: #f3e5f5;
+      color: #7b1fa2;
+    }
+
+    .status-cancelled {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    .quick-actions {
+      margin: 30px 0;
+    }
+
+    /* Кнопки действий */
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-buttons .btn {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.2s;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .btn-outline {
+      background: white;
+      color: var(--primary-color);
+      border: 2px solid var(--primary-color);
+    }
+
+    .btn-accent {
+      background: #28a745;
+      color: white;
+      border: none;
+    }
+
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+      border: none;
+    }
+
+    .btn-accent:hover {
+      background: #218838;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+    }
+
+    .btn-success {
+      background: #28a745;
+      color: white;
+      border: none;
+    }
+
+    .btn-success:hover {
+      background: #218838;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+         /* Модальные окна */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1002;
+      overflow-y: auto;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 20px;
+       max-width: 600px;
+      margin: 40px auto;
+      padding: 32px;
+      position: relative;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: #666;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+      background: #f5f5f5;
+      color: #1a1a1a;
+    }
+
+    .modal-header {
+      margin-bottom: 24px;
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+       margin-bottom: 20px;
+    }
+
+    .form-label {
+      font-weight: 500;
+      color: #1a1a1a;
+      font-size: 0.9rem;
+    }
+
+    .form-input {
+      padding: 12px;
+      border: 2px solid #e3e8ff;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-family: 'Montserrat', sans-serif;
+      transition: all 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary-color);
+      outline: none;
+    }
+
+
+
+    /* МОБИЛЬНЫЕ КАРТОЧКИ ДЛЯ ТАБЛИЦ */
+    @media (max-width: 768px) {
+      .table-container {
+        display: none; /* Скрываем десктопную таблицу */
+      }
+
+      .mobile-cards-container {
+        display: grid;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .order-card {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
+      }
+
+      .order-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+      }
+
+      .order-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .order-card-header .order-title {
+        font-weight: 600;
+        color: #1a1a1a;
+        font-size: 1rem;
+        margin-bottom: 4px;
+        flex: 1;
+      }
+
+      .order-card-header .order-event-type {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-style: italic;
+      }
+
+      .order-card-header .status-badge {
+        align-self: flex-start;
+        flex-shrink: 0;
+      }
+
+      .order-card-body {
+        margin-bottom: 12px;
+      }
+
+      .order-info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #f1f3f4;
+        font-size: 0.9rem;
+      }
+
+      .order-info-row:last-child {
+        border-bottom: none;
+      }
+
+      .info-label {
+        color: #6c757d;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .info-value {
+        color: #1a1a1a;
+        font-weight: 500;
+      }
+
+      .info-value.budget-amount {
+        color: var(--primary-color);
+        font-weight: 600;
+      }
+
+      .order-card-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+      }
+
+      .order-card-actions .btn {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        min-height: 36px;
+        flex: 1;
+        justify-content: center;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6c757d;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .empty-state i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        display: block;
+        color: #dee2e6;
+      }
+
+      .empty-state h3 {
+        margin: 0 0 8px 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #495057;
+      }
+
+      .empty-state p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #6c757d;
+        line-height: 1.4;
+      }
+
+      .desktop-table {
+        display: none;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .order-card {
+        padding: 12px;
+      }
+
+      .order-card-header {
+        margin-bottom: 10px;
+      }
+
+      .order-card-header .order-title {
+        font-size: 0.95rem;
+      }
+
+      .order-card-header .order-event-type {
+        font-size: 0.8rem;
+      }
+
+      .order-info-row {
+        font-size: 0.85rem;
+        padding: 6px 0;
+      }
+
+      .order-card-actions {
+        gap: 6px;
+      }
+
+      .order-card-actions .btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+        min-height: 32px;
+      }
+
+      .empty-state {
+        padding: 24px 12px;
+        min-height: 150px;
+      }
+
+      .empty-state i {
+        font-size: 36px;
+        margin-bottom: 12px;
+      }
+
+      .empty-state h3 {
+        font-size: 1rem;
+        margin-bottom: 6px;
+      }
+
+      .empty-state p {
+        font-size: 0.85rem;
+      }
+    }
+
+    /* Мобильная адаптация табов */
+    @media (max-width: 768px) {
+      .dashboard-container {
+        padding: 12px;
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .tabs-container {
+        border-radius: 12px;
+        max-width: 1600px;        
+        width: 100%;
+        box-sizing: border-box;
+        margin-top: 20px; /* Добавляем отступ от хедера */
+      }
+
+      .tabs-header {
+        display:none;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 12px 0;
+        margin-bottom: 20px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-color) #f1f1f1;
+      }
+
+      .tabs-header::-webkit-scrollbar {
+        height: 4px;
+      }
+
+      .tabs-header::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 2px;
+      }
+
+      .tabs-header::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 2px;
+      }
+
+      .tab-button {
+        min-height: 48px;
+        padding: 12px 20px;
+        font-size: 14px;
+        border-radius: 8px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        background: white;
+        border: 2px solid transparent;
+        color: var(--text-secondary);
+        cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        position: relative;
+        min-width: 100px;
+      }
+
+      .tab-button i {
+        font-size: 18px;
+      }
+
+      .tab-button:hover {
+        background: var(--primary-light);
+        color: var(--primary-dark);
+        transform: translateY(-1px);
+      }
+
+      .tab-button.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 8px rgba(212, 175, 55, 0.3);
+      }
+
+      .tab-button.active::after {
+        display: none; /* Убираем старый индикатор */
+      }
+
+      .tab-content {
+        padding: 16px;
+      }
+
+      .order-title {
+        font-size: 0.9rem;
+      }
+
+      .order-event-type {
+        font-size: 0.75rem;
+      }
+
+      /* Улучшенные стили для быстрых действий */
+      .quick-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .quick-actions .btn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px 16px;
+        font-size: 0.9rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .dashboard-container {
+        padding: 8px;
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .tabs-container {
+        border-radius: 8px;
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
+        margin-top: 16px;
+      }
+
+      .tabs-header {
+        gap: 4px;
+        padding: 8px 0;
+      }
+
+      .tab-button {
+        min-height: 40px;
+        padding: 8px 12px;
+        font-size: 12px;
+        border-radius: 6px;
+      }
+
+      .tab-button i {
+        font-size: 14px;
+      }
+
+      .tab-content {
+        padding: 12px;
+      }
+
+      .quick-actions .btn {
+        padding: 8px 12px;
+        font-size: 13px;
+        min-height: 40px;
+      }
+    }
+
+    /* ГОРИЗОНТАЛЬНАЯ ПРОКРУТКА ДЛЯ ТАБЛИЦ НА МОБИЛЬНЫХ */
+    @media (max-width: 768px) {
+      .table-container {
+        overflow-x: auto;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 16px;
+      }
+
+      .data-table {
+        font-size: 14px;
+        min-width: 600px; /* Фиксированная минимальная ширина для прокрутки */
+        width: 100%;
+      }
+
+      .data-table th,
+      .data-table td {
+        padding: 12px 8px;
+        font-size: 14px;
+        white-space: nowrap;
+        min-width: 100px; /* Минимальная ширина колонок */
+      }
+
+      /* Фиксированные ширины колонок для прокрутки */
+      .data-table th:nth-child(1),
+      .data-table td:nth-child(1) {
+        min-width: 200px;
+        width: 200px;
+      }
+
+      .data-table th:nth-child(2),
+      .data-table td:nth-child(2) {
+        min-width: 100px;
+        width: 100px;
+      }
+
+      .data-table th:nth-child(3),
+      .data-table td:nth-child(3) {
+        min-width: 120px;
+        width: 120px;
+      }
+
+      .data-table th:nth-child(4),
+      .data-table td:nth-child(4) {
+        min-width: 100px;
+        width: 100px;
+      }
+
+      .data-table th:nth-child(5),
+      .data-table td:nth-child(5) {
+        min-width: 100px;
+        width: 100px;
+      }
+
+      .data-table th:nth-child(6),
+      .data-table td:nth-child(6) {
+        min-width: 150px;
+        width: 150px;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: nowrap;
+      }
+
+      .action-buttons .btn {
+        padding: 8px 12px;
+        font-size: 12px;
+        white-space: nowrap;
+        min-width: auto;
+      }
+
+      .status-badge {
+        font-size: 12px;
+        padding: 4px 8px;
+      }
+
+      .order-title {
+        font-size: 14px;
+      }
+
+      .order-event-type {
+        font-size: 12px;
+      }
+
+      .budget-amount {
+        font-size: 14px;
+      }
+    }
+
+    /* Стили для экранов меньше 570px - горизонтальная прокрутка */
+    @media (max-width: 570px) {
+      .table-container {
+        overflow-x: auto;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 12px;
+      }
+
+      .data-table {
+        font-size: 13px;
+        min-width: 550px; /* Немного меньше для 570px */
+      }
+
+      .data-table th,
+      .data-table td {
+        padding: 10px 6px;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      /* Адаптируем ширины колонок */
+      .data-table th:nth-child(1),
+      .data-table td:nth-child(1) {
+        min-width: 180px;
+        width: 180px;
+      }
+
+      .data-table th:nth-child(2),
+      .data-table td:nth-child(2) {
+        min-width: 90px;
+        width: 90px;
+      }
+
+      .data-table th:nth-child(3),
+      .data-table td:nth-child(3) {
+        min-width: 100px;
+        width: 100px;
+      }
+
+      .data-table th:nth-child(4),
+      .data-table td:nth-child(4) {
+        min-width: 90px;
+        width: 90px;
+      }
+
+      .data-table th:nth-child(5),
+      .data-table td:nth-child(5) {
+        min-width: 90px;
+        width: 90px;
+      }
+
+      .data-table th:nth-child(6),
+      .data-table td:nth-child(6) {
+        min-width: 120px;
+        width: 120px;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 6px;
+        flex-wrap: nowrap;
+      }
+
+      .action-buttons .btn {
+        padding: 6px 10px;
+        font-size: 11px;
+        white-space: nowrap;
+      }
+
+      .status-badge {
+        font-size: 11px;
+        padding: 3px 6px;
+      }
+
+      .order-title {
+        font-size: 13px;
+      }
+
+      .order-event-type {
+        font-size: 11px;
+      }
+
+      .budget-amount {
+        font-size: 13px;
+      }
+    }
+
+    /* Стили для экранов 375px и меньше - горизонтальная прокрутка */
+    @media (max-width: 375px) {
+      .table-container {
+        overflow-x: auto;
+        border-radius: 6px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 8px;
+      }
+
+      .data-table {
+        font-size: 12px;
+        min-width: 500px; /* Минимальная ширина для прокрутки */
+      }
+
+      .data-table th,
+      .data-table td {
+        padding: 8px 4px;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      /* Адаптируем ширины колонок для очень маленьких экранов */
+      .data-table th:nth-child(1),
+      .data-table td:nth-child(1) {
+        min-width: 160px;
+        width: 160px;
+      }
+
+      .data-table th:nth-child(2),
+      .data-table td:nth-child(2) {
+        min-width: 80px;
+        width: 80px;
+      }
+
+      .data-table th:nth-child(3),
+      .data-table td:nth-child(3) {
+        min-width: 90px;
+        width: 90px;
+      }
+
+      .data-table th:nth-child(4),
+      .data-table td:nth-child(4) {
+        min-width: 80px;
+        width: 80px;
+      }
+
+      .data-table th:nth-child(5),
+      .data-table td:nth-child(5) {
+        min-width: 80px;
+        width: 80px;
+      }
+
+      .data-table th:nth-child(6),
+      .data-table td:nth-child(6) {
+        min-width: 100px;
+        width: 100px;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 4px;
+        flex-wrap: nowrap;
+      }
+
+      .action-buttons .btn {
+        padding: 4px 8px;
+        font-size: 10px;
+        white-space: nowrap;
+      }
+
+      .status-badge {
+        font-size: 10px;
+        padding: 2px 4px;
+      }
+
+      .order-title {
+        font-size: 12px;
+      }
+
+      .order-event-type {
+        font-size: 10px;
+      }
+
+      .budget-amount {
+        font-size: 12px;
+      }
+    }
+
+    /* Стили для сетки карточек портфолио */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    /* Ограничиваем максимум 6 карточек в ряду */
+    @media (min-width: 1200px) {
+      .cards-grid {
+        grid-template-columns: repeat(6, 1fr);
+      }
+    }
+
+    @media (min-width: 900px) and (max-width: 1199px) {
+      .cards-grid {
+        grid-template-columns: repeat(5, 1fr);
+      }
+    }
+
+    @media (min-width: 700px) and (max-width: 899px) {
+      .cards-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    @media (min-width: 500px) and (max-width: 699px) {
+      .cards-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (min-width: 400px) and (max-width: 499px) {
+      .cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 399px) {
+      .cards-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Стили для карточек портфолио */
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-image {
+      width: 180px;
+      height: 180px;
+      object-fit: cover;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .card-content {
+      padding: 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card-title {
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .card .btn {
+      width: 100%;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    /* Адаптивные стили для карточек на мобильных */
+    @media (max-width: 768px) {
+      .cards-grid {
+        gap: 16px;
+        margin-top: 16px;
+      }
+
+      .card {
+        border-radius: 8px;
+      }
+
+      .card-image {
+        width: 160px;
+        height: 160px;
+      }
+
+      .card-content {
+        padding: 12px;
+      }
+
+      .card-title {
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .cards-grid {
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      .card-image {
+        width: 140px;
+        height: 140px;
+      }
+
+      .card-content {
+        padding: 10px;
+      }
+
+      .card-title {
+        font-size: 0.85rem;
+        margin-bottom: 6px;
+      }
+    }
+
+
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <div class="logo">Той со звездой</div>
+      <nav class="nav desktop-nav">
+        <a href="{% url 'main:index' %}" class="nav-link">
+          <i class="ri-home-line"></i>
+          <span>Главная</span>
+        </a>
+        <a href="{% url 'main:catalog' %}" class="nav-link">
+          <i class="ri-group-line"></i>
+          <span>Исполнители</span>
+        </a>
+        {% if user.is_authenticated %}
+          {% if user.user_type == 'customer' %}
+            <a href="{% url 'main:dashboard' %}#create-order" class="nav-link">
+              <i class="ri-add-circle-line"></i>
+              <span>Создать заявку</span>
+            </a>
+          {% endif %}
+          <div class="nav-dropdown">
+            <button class="nav-dropdown-toggle">
+              <div class="user-info">
+                {% if user.profile_photo %}
+                  <img src="{{ user.profile_photo.url }}" alt="{{ user.get_full_name }}" class="nav-avatar">
+                {% else %}
+                  <i class="ri-user-line"></i>
+                {% endif %}
+                <span>{{ user.get_full_name|default:user.phone_number }}</span>
+              </div>
+              <i class="ri-arrow-down-s-line"></i>
+            </button>
+            <div class="nav-dropdown-menu">
+              <a href="{% url 'main:dashboard' %}">
+                <i class="ri-dashboard-line"></i>
+                <span>Личный кабинет</span>
+              </a>
+              <a href="{% url 'main:logout' %}">
+                <i class="ri-logout-box-line"></i>
+                <span>Выйти</span>
+              </a>
+            </div>
+          </div>
+        {% else %}
+          <a href="{% url 'main:auth' %}" class="nav-link auth-link">
+            <i class="ri-login-box-line"></i>
+            <span>Войти по номеру телефона</span>
+          </a>
+        {% endif %}
+      </nav>
+      <button class="mobile-menu-toggle" aria-label="Открыть меню">
+        <span></span>
+        <span style="height: 3.35px;"></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu">
+    <div class="mobile-menu-content">
+      <nav class="mobile-nav">
+        <a href="{% url 'main:index' %}" class="mobile-nav-link">
+          <i class="ri-home-line"></i>
+          <span>Главная</span>
+        </a>
+        <a href="{% url 'main:catalog' %}" class="mobile-nav-link">
+          <i class="ri-user-star-line"></i>
+          <span>Исполнители</span>
+        </a>
+        {% if user.is_authenticated %}
+          <div class="mobile-nav-dropdown">
+            <button class="mobile-nav-dropdown-toggle">
+              <div class="user-info">
+                {% if user.profile_photo %}
+                  <img src="{{ user.profile_photo.url }}" alt="{{ user.get_full_name }}" class="nav-avatar">
+                {% else %}
+                  <i class="ri-user-line"></i>
+                {% endif %}
+                <span>{{ user.get_full_name|default:user.phone_number }}</span>
+              </div>
+              <i class="ri-arrow-down-s-line"></i>
+            </button>
+            <div class="mobile-nav-dropdown-menu">
+              <a href="{% url 'main:dashboard' %}" class="mobile-nav-link">
+                <i class="ri-dashboard-line"></i>
+                <span>Личный кабинет</span>
+              </a>
+              <a href="{% url 'main:logout' %}" class="mobile-nav-link">
+                <i class="ri-logout-box-line"></i>
+                <span>Выйти</span>
+              </a>
+            </div>
+          </div>
+        {% else %}
+          <a href="{% url 'main:auth' %}" class="mobile-nav-link auth-link">
+            <i class="ri-login-box-line"></i>
+            <span>Войти по номеру телефона</span>
+          </a>
+        {% endif %}
+      </nav>
+    </div>
+  </div>
+
+  <main class="dashboard-container">
+    <!-- Табы -->
+    <div class="tabs-container">
+      <div class="tabs-header">
+        <button class="tab-button active" onclick="showTab('orders')">
+          <i class="ri-file-list-line"></i> Заказы
+        </button>
+        <button class="tab-button" onclick="showTab('portfolio')">
+          <i class="ri-gallery-line"></i> Портфолио
+        </button>
+        <button class="tab-button" onclick="showTab('tariffs')">
+          <i class="ri-money-dollar-circle-line"></i> Тарифы
+        </button>
+        <button class="tab-button" onclick="showTab('calendar')">
+          <i class="ri-calendar-line"></i> Календарь
+        </button>
+        <button class="tab-button" onclick="showTab('profile')">
+          <i class="ri-user-settings-line"></i> Профиль
+        </button>
+      </div>
+      
+      <!-- Мобильный дропдаун для табов -->
+      <div class="mobile-tabs-dropdown">
+        <button class="mobile-tabs-toggle" onclick="toggleMobileTabs()">
+          <span class="current-tab-text">Заказы</span>
+          <i class="ri-arrow-down-s-line"></i>
+        </button>
+        <div class="mobile-tabs-menu" id="mobileTabsMenu">
+          <button class="mobile-tab-option active" onclick="selectMobileTab('orders', 'Заказы')">
+            <i class="ri-file-list-line"></i> Заказы
+          </button>
+          <button class="mobile-tab-option" onclick="selectMobileTab('portfolio', 'Портфолио')">
+            <i class="ri-gallery-line"></i> Портфолио
+          </button>
+          <button class="mobile-tab-option" onclick="selectMobileTab('tariffs', 'Тарифы')">
+            <i class="ri-money-dollar-circle-line"></i> Тарифы
+          </button>
+          <button class="mobile-tab-option" onclick="selectMobileTab('calendar', 'Календарь')">
+            <i class="ri-calendar-line"></i> Календарь
+          </button>
+          <button class="mobile-tab-option" onclick="selectMobileTab('profile', 'Профиль')">
+            <i class="ri-user-settings-line"></i> Профиль
+          </button>
+        </div>
+      </div>
+
+      <!-- Таб Заказы -->
+      <div id="orders" class="tab-content active">
+        <div class="quick-actions">
+          <button class="btn btn-primary" onclick="openModal('addPortfolioModal')">
+            <i class="ri-add-line"></i> Добавить фото
+            </button>
+          <button class="btn btn-outline" onclick="addTariff()">
+            <i class="ri-add-line"></i> Добавить тариф
+          </button>
+          <button class="btn btn-outline" onclick="openCalendarModal()">
+            <i class="ri-calendar-line"></i> Управление календарем
+          </button>
+            </div>
+
+        <h3>Доступные заявки ({{ new_requests_count }})</h3>
+        
+        <!-- Десктопная таблица -->
+        <div class="table-container desktop-table">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Название</th>
+                <th>Дата</th>
+                <th>Город</th>
+                <th>Бюджет</th>
+                <th>Статус</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in available_orders %}
+              <tr>
+                <td>
+                  <div class="order-title">{{ order.title }}</div>
+                  <div class="order-event-type">{{ order.get_event_type_display }}</div>
+                </td>
+                <td>{{ order.event_date|date:"d.m.Y" }}</td>
+                <td>{{ order.city }}</td>
+                <td><span class="budget-amount">{{ order.budget_min }} - {{ order.budget_max }} ₸</span></td>
+                <td><span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span></td>
+                <td>
+                  <div class="action-buttons">
+                    <button data-order-id="{{ order.id }}" data-action="respond" class="btn btn-small btn-primary order-action-btn">Откликнуться</button>
+                    <button data-order-id="{{ order.id }}" data-action="view" class="btn btn-small btn-outline order-action-btn">Подробнее</button>
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 40px; color: #6c757d;">
+                  <i class="ri-search-line" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+                  <p>Нет доступных заявок</p>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Мобильные карточки -->
+        <div class="mobile-cards-container">
+          {% for order in available_orders %}
+          <div class="order-card">
+            <div class="order-card-header">
+              <div>
+                <div class="order-title">{{ order.title }}</div>
+                <div class="order-event-type">{{ order.get_event_type_display }}</div>
+              </div>
+              <span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span>
+            </div>
+            <div class="order-card-body">
+              <div class="order-info-row">
+                <span class="info-label">
+                  <i class="ri-calendar-line"></i>
+                  Дата
+                </span>
+                <span class="info-value">{{ order.event_date|date:"d.m.Y" }}</span>
+              </div>
+              <div class="order-info-row">
+                <span class="info-label">
+                  <i class="ri-map-pin-line"></i>
+                  Город
+                </span>
+                <span class="info-value">{{ order.city }}</span>
+              </div>
+              <div class="order-info-row">
+                <span class="info-label">
+                  <i class="ri-money-dollar-circle-line"></i>
+                  Бюджет
+                </span>
+                <span class="info-value budget-amount">{{ order.budget_min }} - {{ order.budget_max }} ₸</span>
+              </div>
+            </div>
+            <div class="order-card-actions">
+              <button data-order-id="{{ order.id }}" data-action="respond" class="btn btn-primary order-action-btn">
+                <i class="ri-add-line"></i> Откликнуться
+              </button>
+              <button data-order-id="{{ order.id }}" data-action="view" class="btn btn-outline order-action-btn">
+                <i class="ri-eye-line"></i> Подробнее
+              </button>
+            </div>
+          </div>
+          {% empty %}
+          <div class="empty-state">
+            <i class="ri-search-line"></i>
+            <h3>Нет доступных заявок</h3>
+            <p>Пока нет новых заявок для вас</p>
+          </div>
+          {% endfor %}
+        </div>
+
+        <h3 style="margin-top: 32px;">Мои активные заказы</h3>
+        
+        <!-- Десктопная таблица -->
+        <div class="table-container desktop-table">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Название</th>
+                <th>Дата</th>
+                <th>Тип</th>
+                <th>Статус</th>
+                <th>Бюджет</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in active_orders %}
+              <tr>
+                <td>
+                  <div class="order-title">{{ order.title }}</div>
+                  <div class="order-event-type">{{ order.get_event_type_display }}</div>
+                </td>
+                <td>{{ order.event_date|date:"d.m.Y" }}</td>
+                <td>
+                  {% if order.order_type == 'booking' %}
+                    <i class="ri-calendar-check-line"></i> Бронирование
+                  {% else %}
+                    <i class="ri-file-list-line"></i> Заявка
+                  {% endif %}
+                </td>
+                <td><span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span></td>
+                <td><span class="budget-amount">{{ order.budget_min }} - {{ order.budget_max }} ₸</span></td>
+                <td>
+                  <div class="action-buttons">
+                    <button data-order-id="{{ order.id }}" data-action="view" class="btn btn-small btn-outline order-action-btn">Подробнее</button>
+                    {% if order.status == 'in_progress' %}
+                      <button data-order-id="{{ order.id }}" data-action="chat" class="btn btn-small btn-primary chat-btn">Чат</button>
+                      <button data-order-id="{{ order.id }}" data-action="complete" class="btn btn-small btn-accent complete-btn">Завершить</button>
+                    {% elif order.status == 'new' %}
+                      {% if order.order_type == 'booking' %}
+                        <button data-order-id="{{ order.id }}" data-action="accept" class="btn btn-small btn-accent accept-btn">Принять</button>
+                        <button data-order-id="{{ order.id }}" data-action="reject" class="btn btn-small btn-danger reject-btn">Отклонить</button>
+                      {% else %}
+                        <button data-order-id="{{ order.id }}" data-action="chat" class="btn btn-small btn-primary chat-btn">Чат</button>
+                        <button data-order-id="{{ order.id }}" data-action="cancel" class="btn btn-small btn-danger cancel-btn">Отменить</button>
+                      {% endif %}
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 40px; color: #6c757d;">
+                  <i class="ri-shopping-bag-line" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+                  <p>У вас пока нет активных заказов</p>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Мобильные карточки -->
+        <div class="mobile-cards-container">
+          {% for order in active_orders %}
+          <div class="order-card">
+            <div class="order-card-header">
+              <div>
+                <div class="order-title">{{ order.title }}</div>
+                <div class="order-event-type">{{ order.get_event_type_display }}</div>
+              </div>
+              <span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span>
+            </div>
+            <div class="order-card-body">
+              <div class="order-info-row">
+                <span class="info-label">
+                  <i class="ri-calendar-line"></i>
+                  Дата
+                </span>
+                <span class="info-value">{{ order.event_date|date:"d.m.Y" }}</span>
+              </div>
+              <div class="order-info-row">
+                <span class="info-label">
+                  <i class="ri-file-list-line"></i>
+                  Тип
+                </span>
+                <span class="info-value">
+                  {% if order.order_type == 'booking' %}
+                    <i class="ri-calendar-check-line"></i> Бронирование
+                  {% else %}
+                    <i class="ri-file-list-line"></i> Заявка
+                  {% endif %}
+                </span>
+              </div>
+              <div class="order-info-row">
+                <span class="info-label">
+                  <i class="ri-money-dollar-circle-line"></i>
+                  Бюджет
+                </span>
+                <span class="info-value budget-amount">{{ order.budget_min }} - {{ order.budget_max }} ₸</span>
+              </div>
+            </div>
+            <div class="order-card-actions">
+              <button data-order-id="{{ order.id }}" data-action="view" class="btn btn-outline order-action-btn">
+                <i class="ri-eye-line"></i> Подробнее
+              </button>
+              {% if order.status == 'in_progress' %}
+                <button data-order-id="{{ order.id }}" data-action="chat" class="btn btn-primary chat-btn">
+                  <i class="ri-chat-1-line"></i> Чат
+                </button>
+                <button data-order-id="{{ order.id }}" data-action="complete" class="btn btn-accent complete-btn">
+                  <i class="ri-check-line"></i> Завершить
+                </button>
+              {% elif order.status == 'new' %}
+                {% if order.order_type == 'booking' %}
+                  <button data-order-id="{{ order.id }}" data-action="accept" class="btn btn-accent accept-btn">
+                    <i class="ri-check-line"></i> Принять
+                  </button>
+                  <button data-order-id="{{ order.id }}" data-action="reject" class="btn btn-danger reject-btn">
+                    <i class="ri-close-line"></i> Отклонить
+                  </button>
+                {% else %}
+                  <button data-order-id="{{ order.id }}" data-action="chat" class="btn btn-primary chat-btn">
+                    <i class="ri-chat-1-line"></i> Чат
+                  </button>
+                  <button data-order-id="{{ order.id }}" data-action="cancel" class="btn btn-danger cancel-btn">
+                    <i class="ri-close-line"></i> Отменить
+                  </button>
+                {% endif %}
+              {% endif %}
+            </div>
+          </div>
+          {% empty %}
+          <div class="empty-state">
+            <i class="ri-shopping-bag-line"></i>
+            <h3>У вас пока нет активных заказов</h3>
+            <p>Здесь будут отображаться ваши текущие заказы</p>
+          </div>
+          {% endfor %}
+        </div>
+
+        <h3 style="margin-top: 32px;">Мои отклики</h3>
+        
+        <!-- Десктопная таблица -->
+        <div class="table-container desktop-table">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Заказ</th>
+                <th>Заказчик</th>
+                <th>Моя цена</th>
+                <th>Дата отклика</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for response in my_responses %}
+              <tr>
+                <td>
+                  <div class="order-title">{{ response.order.title }}</div>
+                  <div class="order-event-type">{{ response.order.event_date|date:"d.m.Y" }}</div>
+                </td>
+                <td>{{ response.order.customer.get_full_name }}</td>
+                <td><span class="budget-amount">{{ response.price }} ₸</span></td>
+                <td>{{ response.created_at|date:"d.m.Y" }}</td>
+                <td>
+                  <div class="action-buttons">
+                    <button data-order-id="{{ response.order.id }}" data-action="view" class="btn btn-small btn-outline order-action-btn">Посмотреть</button>
+                    {% if response.order.status == 'new' %}
+                      <span class="btn btn-small btn-success" style="background: #28a745; color: white; cursor: default;">Отклик отправлен</span>
+                      <button data-response-id="{{ response.id }}" data-action="cancel-response" class="btn btn-small btn-danger cancel-response-btn">Отменить отклик</button>
+                    {% elif response.order.status == 'in_progress' %}
+                      {% with selected_performers=response.order.selected_performers|default:"{}" %}
+                        {% if response.performer.service_type.code in selected_performers and selected_performers|get_item:response.performer.service_type.code == response.performer.id %}
+                          <span class="btn btn-small btn-accent" style="background: #28a745; color: white; cursor: default;">Принят</span>
+                        {% else %}
+                          <span class="btn btn-small btn-success" style="background: #28a745; color: white; cursor: default;">Отклик отправлен</span>
+                          <button data-response-id="{{ response.id }}" data-action="cancel-response" class="btn btn-small btn-danger cancel-response-btn">Отменить отклик</button>
+                        {% endif %}
+                      {% endwith %}
+                    {% elif response.order.status == 'cancelled' %}
+                      <span class="btn btn-small btn-danger" style="background: #dc3545; color: white; cursor: default;">Заказ отменен</span>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="5" style="text-align: center; padding: 40px; color: #6c757d;">
+                  <i class="ri-message-3-line" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+                  <p>Нет откликов</p>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Мобильные карточки -->
+        <div class="mobile-cards-container">
+          {% for response in my_responses %}
+          <div class="order-card">
+            <div class="order-card-header">
+              <div>
+                <div class="order-title">{{ response.order.title }}</div>
+                <div class="order-event-type">{{ response.order.event_date|date:"d.m.Y" }}</div>
+              </div>
+              <span class="status-badge status-{{ response.order.status }}">{{ response.order.get_status_display }}</span>
+            </div>
+            <div class="order-card-body">
+              <div class="order-info-row">
+                <span class="info-label">
+                  <i class="ri-user-line"></i>
+                  Заказчик
+                </span>
+                <span class="info-value">{{ response.order.customer.get_full_name }}</span>
+              </div>
+              <div class="order-info-row">
+                <span class="info-label">
+                  <i class="ri-money-dollar-circle-line"></i>
+                  Моя цена
+                </span>
+                <span class="info-value budget-amount">{{ response.price }} ₸</span>
+              </div>
+              <div class="order-info-row">
+                <span class="info-label">
+                  <i class="ri-calendar-line"></i>
+                  Дата отклика
+                </span>
+                <span class="info-value">{{ response.created_at|date:"d.m.Y" }}</span>
+              </div>
+            </div>
+            <div class="order-card-actions">
+              <button data-order-id="{{ response.order.id }}" data-action="view" class="btn btn-outline order-action-btn">
+                <i class="ri-eye-line"></i> Посмотреть
+              </button>
+              {% if response.order.status == 'new' %}
+                <span class="btn btn-success" style="background: #28a745; color: white; cursor: default;">
+                  <i class="ri-check-line"></i> Отклик отправлен
+                </span>
+                <button data-response-id="{{ response.id }}" data-action="cancel-response" class="btn btn-danger cancel-response-btn">
+                  <i class="ri-close-line"></i> Отменить отклик
+                </button>
+              {% elif response.order.status == 'in_progress' %}
+                {% with selected_performers=response.order.selected_performers|default:"{}" %}
+                  {% if response.performer.service_type.code in selected_performers and selected_performers|get_item:response.performer.service_type.code == response.performer.id %}
+                    <span class="btn btn-accent" style="background: #28a745; color: white; cursor: default;">
+                      <i class="ri-check-line"></i> Принят
+                    </span>
+                  {% else %}
+                    <span class="btn btn-success" style="background: #28a745; color: white; cursor: default;">
+                      <i class="ri-check-line"></i> Отклик отправлен
+                    </span>
+                    <button data-response-id="{{ response.id }}" data-action="cancel-response" class="btn btn-danger cancel-response-btn">
+                      <i class="ri-close-line"></i> Отменить отклик
+                    </button>
+                  {% endif %}
+                {% endwith %}
+              {% elif response.order.status == 'cancelled' %}
+                <span class="btn btn-danger" style="background: #dc3545; color: white; cursor: default;">
+                  <i class="ri-close-line"></i> Заказ отменен
+                </span>
+              {% endif %}
+            </div>
+          </div>
+          {% empty %}
+          <div class="empty-state">
+            <i class="ri-message-3-line"></i>
+            <h3>Нет откликов</h3>
+            <p>Здесь будут отображаться ваши отклики на заказы</p>
+          </div>
+          {% endfor %}
+        </div>
+        </div>
+
+      <!-- Таб Портфолио -->
+      <div id="portfolio" class="tab-content">
+        <div class="quick-actions">
+          <button class="btn btn-primary" onclick="openModal('addPortfolioModal')">
+            <i class="ri-image-line"></i> Добавить фото
+              </button>
+          <button class="btn btn-outline" onclick="alert('Функция добавления видео будет доступна позже')">
+            <i class="ri-video-line"></i> Добавить видео
+              </button>
+          </div>
+          
+        <div class="cards-grid">
+          {% for photo in portfolio_photos %}
+          <div class="card" onclick="openPhotoModal('{{ photo.image.url }}')">
+            <img src="{{ photo.image.url }}" alt="Портфолио" class="card-image">
+            <div class="card-content">
+              <div class="card-title">Фото #{{ forloop.counter }}</div>
+              <form action="{% url 'main:delete_portfolio_photo' photo.id %}" method="POST" style="display: inline;" onclick="event.stopPropagation()">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-small btn-outline" onclick="return confirm('Удалить это фото?')">
+                  <i class="ri-delete-bin-line"></i> Удалить
+                </button>
+              </form>
+            </div>
+              </div>
+          {% empty %}
+          <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #6c757d;">
+            <i class="ri-gallery-line" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+            <p>Добавьте фото в ваше портфолио</p>
+            </div>
+          {% endfor %}
+          </div>
+        </div>
+
+      <!-- Таб Тарифы -->
+      <div id="tariffs" class="tab-content">
+        <div class="quick-actions">
+          <button class="btn btn-primary" onclick="addTariff()">
+            <i class="ri-add-line"></i> Добавить тариф
+            </button>
+          </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Название</th>
+                <th>Цена</th>
+                <th>Описание</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for tariff in tariffs %}
+              <tr>
+                <td><strong>{{ tariff.name }}</strong></td>
+                <td><span class="card-price">{{ tariff.price }} ₸</span></td>
+                <td>{{ tariff.description|truncatechars:100 }}</td>
+                <td>
+                  <div class="action-buttons">
+                    <button class="btn btn-small btn-outline" onclick="editTariff('{{ tariff.id }}')">
+                  <i class="ri-edit-line"></i>
+                </button>
+                <form action="{% url 'main:delete_tariff' tariff.id %}" method="POST" style="display: inline;">
+                  {% csrf_token %}
+                      <button type="submit" class="btn btn-small btn-outline" onclick="return confirm('Удалить этот тариф?')">
+                    <i class="ri-delete-bin-line"></i>
+                  </button>
+                </form>
+            </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="4" style="text-align: center; padding: 40px; color: #6c757d;">
+                  <i class="ri-money-dollar-circle-line" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+            <p>Добавьте ваши тарифы</p>
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          </div>
+        </div>
+
+      <!-- Таб Календарь -->
+      <div id="calendar" class="tab-content">
+        <div class="quick-actions">
+                    <button class="btn btn-primary" onclick="openCalendarModal()">
+            <i class="ri-calendar-line"></i> Управление календарем
+          </button>
+          </div>
+
+        <h3>Занятые даты</h3>
+          <div class="calendar-grid">
+            {% for date in busy_dates %}
+          <div class="calendar-day busy" style="background-color: #ffe5e5; color: #e74c3c;">
+            <div>{{ date.date|date:"d" }}</div>
+            <div style="font-size: 0.7rem;">{{ date.date|date:"M" }}</div>
+            </div>
+            {% empty %}
+          <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #6c757d;">
+            <i class="ri-calendar-line" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+            <p>Нет отмеченных занятых дат</p>
+          </div>
+            {% endfor %}
+          </div>
+        </div>
+
+             <!-- Таб Профиль -->
+       <div id="profile" class="tab-content">
+
+                  <!-- Информация о пользователе -->
+         <div style="background: white; border-radius: 16px; padding: 32px; margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+           <!-- Основная информация -->
+           <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #e9ecef; flex-wrap: wrap;">
+             <!-- Фото профиля -->
+             {% if user.profile_photo %}
+               <img src="{{ user.profile_photo.url }}" alt="Фото профиля" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid #f8f9fa;">
+             {% else %}
+               <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #e3e8ff 0%, #f0f4ff 100%); display: flex; align-items: center; justify-content: center; border: 4px solid #f8f9fa;">
+                 <i class="ri-user-line" style="font-size: 40px; color: var(--primary-color);"></i>
+          </div>
+             {% endif %}
+             
+             <!-- Имя и основная информация -->
+             <div style="flex: 1;">
+               <h2 style="margin: 0 0 8px 0; color: #1a1a1a; font-size: 1.8rem; font-weight: 700;">{{ user.get_full_name }}</h2>
+               <div style="display: flex; gap: 24px; color: #6c757d; font-size: 0.95rem; margin-bottom: 16px;">
+                 <span style="display: flex; align-items: center; gap: 6px;">
+                   <i class="ri-map-pin-line" style="color: var(--primary-color);"></i>
+                   {{ user.city.name|default:"Не указан" }}
+                 </span>
+                 <span style="display: flex; align-items: center; gap: 6px;">
+                   <i class="ri-star-fill" style="color: #ffc107;"></i>
+                   {{ rating|floatformat:1 }} ({{ reviews.count }} отзывов)
+                 </span>
+                 <span style="display: flex; align-items: center; gap: 6px;">
+                   <i class="ri-user-star-line" style="color: var(--primary-color);"></i>
+                   {{ user.service_type.name|default:"Не указана" }}
+                 </span>
+                  </div>
+                  <button class="btn btn-primary" onclick="openEditProfileModal()" style="padding: 10px 20px; font-size: 0.9rem;">
+                    <i class="ri-edit-line"></i> Редактировать профиль
+                  </button>
+                </div>
+
+              </div>
+           
+           <!-- Статистика -->
+           <div style="margin-bottom: 32px;">
+             <h3 style="margin: 0 0 20px 0; color: #1a1a1a; font-size: 1.3rem; font-weight: 600;">Статистика работы</h3>
+             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px;">
+               <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border: 1px solid #e9ecef; padding: 20px; border-radius: 12px; text-align: center; transition: all 0.2s;">
+                 <i class="ri-calendar-check-line" style="font-size: 28px; color: var(--primary-color); margin-bottom: 12px; display: block;"></i>
+                 <div style="font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin-bottom: 6px;">{{ completed_orders_count }}</div>
+                 <div style="color: #6c757d; font-size: 0.9rem; font-weight: 500;">Выполнено заказов</div>
+              </div>
+               
+               <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border: 1px solid #e9ecef; padding: 20px; border-radius: 12px; text-align: center; transition: all 0.2s;">
+                 <i class="ri-notification-3-line" style="font-size: 28px; color: var(--primary-color); margin-bottom: 12px; display: block;"></i>
+                 <div style="font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin-bottom: 6px;">{{ new_requests_count }}</div>
+                 <div style="color: #6c757d; font-size: 0.9rem; font-weight: 500;">Новых заявок</div>
+              </div>
+               
+               <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border: 1px solid #e9ecef; padding: 20px; border-radius: 12px; text-align: center; transition: all 0.2s;">
+                 <i class="ri-time-line" style="font-size: 28px; color: var(--primary-color); margin-bottom: 12px; display: block;"></i>
+                 <div style="font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin-bottom: 6px;">{{ active_bookings_count }}</div>
+                 <div style="color: #6c757d; font-size: 0.9rem; font-weight: 500;">Активных заказов</div>
+            </div>
+               
+               <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border: 1px solid #e9ecef; padding: 20px; border-radius: 12px; text-align: center; transition: all 0.2s;">
+                 <i class="ri-star-fill" style="font-size: 28px; color: #ffc107; margin-bottom: 12px; display: block;"></i>
+                 <div style="font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin-bottom: 6px;">{{ rating|floatformat:1 }}</div>
+                 <div style="color: #6c757d; font-size: 0.9rem; font-weight: 500;">Средний рейтинг</div>
+            </div>
+          </div>
+        </div>
+
+           <!-- Контактная информация -->
+           <div style="background: #f8f9fa; padding: 24px; border-radius: 12px;">
+             <h4 style="margin: 0 0 16px 0; color: #1a1a1a; font-size: 1.1rem; font-weight: 600;">Контактная информация</h4>
+             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+               <div style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #e9ecef;">
+                 <div style="font-weight: 600; color: #1a1a1a; margin-bottom: 4px;">Телефон</div>
+                 <div style="color: #6c757d;">{{ user.phone_number|default:"Не указан" }}</div>
+          </div>
+               <div style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #e9ecef;">
+                 <div style="font-weight: 600; color: #1a1a1a; margin-bottom: 4px;">Email</div>
+                 <div style="color: #6c757d;">{{ user.email|default:"Не указан" }}</div>
+                  </div>
+               <div style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #e9ecef;">
+                 <div style="font-weight: 600; color: #1a1a1a; margin-bottom: 4px;">Дата регистрации</div>
+                 <div style="color: #6c757d;">{{ user.date_joined|date:"d.m.Y" }}</div>
+                </div>
+               <div style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #e9ecef;">
+                 <div style="font-weight: 600; color: #1a1a1a; margin-bottom: 4px;">Последний вход</div>
+                 <div style="color: #6c757d;">{{ user.last_login|date:"d.m.Y H:i"|default:"Не указан" }}</div>
+              </div>
+              </div>
+             
+             {% if user.bio or user.company_name %}
+             <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e9ecef;">
+               {% if user.company_name %}
+               <div style="margin-bottom: 12px;">
+                 <div style="font-weight: 600; color: #1a1a1a; margin-bottom: 4px;">Компания</div>
+                 <div style="color: #6c757d;">{{ user.company_name }}</div>
+              </div>
+               {% endif %}
+               
+               {% if user.bio %}
+               <div>
+                 <div style="font-weight: 600; color: #1a1a1a; margin-bottom: 8px;">О себе</div>
+                 <div style="color: #6c757d; line-height: 1.6; background: white; padding: 16px; border-radius: 8px; border: 1px solid #e9ecef;">{{ user.bio }}</div>
+          </div>
+               {% endif %}
+                  </div>
+                {% endif %}
+              </div>
+              </div>
+
+         <h3>Отзывы о вас</h3>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>От кого</th>
+                <th>Оценка</th>
+                <th>Комментарий</th>
+                <th>Дата</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for review in reviews %}
+              <tr>
+                <td>{{ review.from_user.get_full_name }}</td>
+                <td>
+                  <span style="color: #ffc107;">
+                    {% for i in "12345" %}
+                      {% if forloop.counter <= review.rating %}
+                        <i class="ri-star-fill"></i>
+                      {% else %}
+                        <i class="ri-star-line"></i>
+                      {% endif %}
+                    {% endfor %}
+                  </span>
+                  ({{ review.rating }}/5)
+                </td>
+                <td>{{ review.comment|truncatechars:100 }}</td>
+                <td>{{ review.created_at|date:"d.m.Y" }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="4" style="text-align: center; padding: 40px; color: #6c757d;">
+                  <i class="ri-star-line" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+                  <p>Пока нет отзывов</p>
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  </main>
+
+  <!-- Include all modal templates -->
+  {% include "modals/edit_profile_modal.html" %}
+  {% include "modals/add_portfolio_modal.html" %}
+  {% include "modals/tariff_modal.html" %}
+  {% include "modals/calendar_modal.html" %}
+  {% include "modals/order_detail_modal.html" %}
+  {% include "modals/quick_profile_modal.html" %}
+  {% include "modals/chat_modal.html" %}
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3>О нас</h3>
+          <p>Той со звездой - платформа для поиска профессиональных исполнителей для вашего мероприятия.</p>
+        </div>
+        <div class="footer-section">
+          <h3>Контакты</h3>
+          <p>Email: <a href="mailto:miras.abildin@bk.ru">miras.abildin@bk.ru</a></p>
+          <p>Телефон: <a href="tel:+77754184629">+7 (775)-418-46-29</a></p>
+        </div>
+        <div class="footer-section">
+          <h3>Соцсети</h3>
+          <div class="social-links">
+            <a href="https://www.instagram.com/_miras_event_/" target="_blank"><i class="ri-instagram-line"></i></a>
+            <a href="https://www.tiktok.com/@miras_abildin_?_t=ZM-8yOktSAtIhi&_r=1" target="_blank"><i class="ri-tiktok-line"></i></a>
+            <a href="https://wa.me/77754184629" target="_blank">
+              <i class="ri-whatsapp-line"></i>
+            </a>  
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2024 Той со звездой. Все права защищены.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function showTab(tabName) {
+      // Скрываем все табы
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabContents.forEach(content => content.classList.remove('active'));
+      
+      // Убираем активный класс со всех кнопок
+      const tabButtons = document.querySelectorAll('.tab-button');
+      tabButtons.forEach(button => button.classList.remove('active'));
+      
+      // ПРИНУДИТЕЛЬНО СКРЫВАЕМ ТАРИФЫ ВО ВСЕХ ДРУГИХ ТАБАХ
+      const allTariffs = document.querySelectorAll('#tariffs');
+      allTariffs.forEach(tariff => {
+        if (tariff.closest('.tab-content') && tariff.closest('.tab-content').id !== tabName) {
+          tariff.style.display = 'none';
+          tariff.style.visibility = 'hidden';
+          tariff.style.opacity = '0';
+        }
+      });
+      
+      // Показываем нужный таб
+      document.getElementById(tabName).classList.add('active');
+      
+      // Добавляем активный класс к кнопке
+      event.target.classList.add('active');
+    }
+
+    // Функции для мобильного дропдауна табов
+    function toggleMobileTabs() {
+      const menu = document.getElementById('mobileTabsMenu');
+      const toggle = document.querySelector('.mobile-tabs-toggle');
+      
+      menu.classList.toggle('active');
+      toggle.classList.toggle('active');
+    }
+
+    function selectMobileTab(tabName, tabText) {
+      // Скрываем все табы
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabContents.forEach(content => content.classList.remove('active'));
+      
+      // Убираем активный класс со всех опций
+      const tabOptions = document.querySelectorAll('.mobile-tab-option');
+      tabOptions.forEach(option => option.classList.remove('active'));
+      
+      // ПРИНУДИТЕЛЬНО СКРЫВАЕМ ТАРИФЫ ВО ВСЕХ ДРУГИХ ТАБАХ
+      const allTariffs = document.querySelectorAll('#tariffs');
+      allTariffs.forEach(tariff => {
+        if (tariff.closest('.tab-content') && tariff.closest('.tab-content').id !== tabName) {
+          tariff.style.display = 'none';
+          tariff.style.visibility = 'hidden';
+          tariff.style.opacity = '0';
+        }
+      });
+      
+      // Показываем нужный таб
+      document.getElementById(tabName).classList.add('active');
+      
+      // Добавляем активный класс к выбранной опции
+      event.target.classList.add('active');
+      
+      // Обновляем текст в кнопке дропдауна
+      document.querySelector('.current-tab-text').textContent = tabText;
+      
+      // Закрываем дропдаун
+      toggleMobileTabs();
+    }
+
+    function openModal(modalId) {
+      document.getElementById(modalId).style.display = 'block';
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+
+    function openEditProfileModal() {
+      openModal('editProfileModal');
+    }
+
+    function editTariff(tariffId) {
+      // Открываем модальное окно для редактирования тарифа
+      if (typeof openTariffModal === 'function') {
+        openTariffModal(tariffId);
+      } else {
+        console.error('openTariffModal function not found');
+        alert('Ошибка: функция редактирования тарифа недоступна');
+      }
+    }
+
+    function addTariff() {
+      // Открываем модальное окно для добавления тарифа
+      if (typeof openTariffModal === 'function') {
+        openTariffModal();
+      } else {
+        console.error('openTariffModal function not found');
+        alert('Ошибка: функция добавления тарифа недоступна');
+      }
+    }
+
+    // Функции для работы с тарифами
+    function openTariffModal(tariffId = null) {
+      const modal = document.getElementById('tariffModal');
+      const title = document.getElementById('tariffModalTitle');
+      const form = document.getElementById('tariffForm');
+      const idInput = document.getElementById('tariffId');
+      const nameInput = document.getElementById('tariffName');
+      const priceInput = document.getElementById('tariffPrice');
+      const descriptionInput = document.getElementById('tariffDescription');
+
+      // Reset form
+      form.reset();
+      idInput.value = '';
+
+      if (tariffId) {
+        // Edit mode
+        title.textContent = 'Изменить тариф';
+        fetch(`/tariff/${tariffId}/edit/`)
+          .then(response => response.json())
+          .then(data => {
+            idInput.value = data.id;
+            nameInput.value = data.name;
+            priceInput.value = data.price;
+            descriptionInput.value = data.description || '';
+          })
+          .catch(error => {
+            console.error('Error fetching tariff data:', error);
+            alert('Произошла ошибка при загрузке данных тарифа');
+            closeModal('tariffModal');
+          });
+      } else {
+        // Add mode
+        title.textContent = 'Добавить тариф';
+      }
+
+      openModal('tariffModal');
+    }
+
+    function closeTariffModal() {
+      document.getElementById('tariffForm').reset();
+      document.getElementById('tariffId').value = '';
+      closeModal('tariffModal');
+    }
+
+    // Закрытие модальных окон при клике вне их
+    window.onclick = function(event) {
+      const modals = document.querySelectorAll('.modal');
+      modals.forEach(modal => {
+        if (event.target === modal) {
+          modal.style.display = 'none';
+          // Если это модальное окно тарифа, сбрасываем форму
+          if (modal.id === 'tariffModal') {
+            closeTariffModal();
+        }
+      }
+    });
+    }
+
+    // Инициализация обработчиков для модального окна тарифа
+    document.addEventListener('DOMContentLoaded', function() {
+      const tariffModalClose = document.querySelector('#tariffModal .modal-close');
+      if (tariffModalClose) {
+        tariffModalClose.onclick = closeTariffModal;
+      }
+    });
+
+    // Функция отмены заказа
+    function cancelOrder(orderId) {
+      if (confirm('Вы уверены, что хотите отменить этот заказ?')) {
+        fetch(`/order/${orderId}/cancel-api/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            showNotification(data.message || 'Заказ успешно отменен', 'success');
+            setTimeout(() => { location.reload(); }, 1000);
+          } else {
+            showNotification('Ошибка при отмене заказа: ' + (data.error || 'Неизвестная ошибка'), 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showNotification('Ошибка при отмене заказа: ' + error.message, 'error');
+        });
+      }
+    }
+
+    // Функция завершения заказа исполнителем
+    function completeOrder(orderId) {
+      if (confirm('Вы уверены, что хотите завершить этот заказ?')) {
+        fetch(`/order/${orderId}/complete-api/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            showNotification(data.message || 'Заказ успешно завершен', 'success');
+            setTimeout(() => { location.reload(); }, 1000);
+          } else {
+            showNotification('Ошибка при завершении заказа: ' + (data.error || 'Неизвестная ошибка'), 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showNotification('Ошибка при завершении заказа: ' + error.message, 'error');
+        });
+      }
+    }
+
+    // Функция отмены бронирования исполнителем
+    function performerCancelBooking(orderId) {
+      if (confirm('Вы уверены, что хотите отменить это бронирование?')) {
+        fetch(`/order/${orderId}/performer-cancel-booking-api/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            showNotification(data.message || 'Бронирование успешно отменено', 'success');
+            setTimeout(() => { location.reload(); }, 1000);
+          } else {
+            showNotification('Ошибка при отмене бронирования: ' + (data.error || 'Неизвестная ошибка'), 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showNotification('Ошибка при отмене бронирования: ' + error.message, 'error');
+        });
+      }
+    }
+
+    // Функция принятия бронирования исполнителем
+    function acceptBooking(orderId) {
+      if (confirm('Вы уверены, что хотите принять это бронирование?')) {
+        fetch(`/order/${orderId}/accept-booking-api/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            showNotification(data.message || 'Бронирование успешно принято', 'success');
+            setTimeout(() => { location.reload(); }, 1000);
+          } else {
+            showNotification('Ошибка при принятии бронирования: ' + (data.error || 'Неизвестная ошибка'), 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showNotification('Ошибка при принятии бронирования: ' + error.message, 'error');
+        });
+      }
+    }
+
+    // Функция отклонения бронирования исполнителем
+    function rejectBooking(orderId) {
+      if (confirm('Вы уверены, что хотите отклонить это бронирование?')) {
+        fetch(`/order/${orderId}/reject-booking-api/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            showNotification(data.message || 'Бронирование отклонено', 'success');
+            setTimeout(() => { location.reload(); }, 1000);
+          } else {
+            showNotification('Ошибка при отклонении бронирования: ' + (data.error || 'Неизвестная ошибка'), 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showNotification('Ошибка при отклонении бронирования: ' + error.message, 'error');
+        });
+      }
+    }
+
+    // Функция отмены отклика исполнителем
+    function cancelResponse(responseId) {
+      if (confirm('Вы уверены, что хотите отменить этот отклик?')) {
+        fetch(`/order/response/${responseId}/cancel/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            showNotification('Отклик успешно отменен', 'success');
+            setTimeout(() => { location.reload(); }, 1000);
+          } else {
+            showNotification('Ошибка при отмене отклика: ' + (data.error || 'Неизвестная ошибка'), 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showNotification('Ошибка при отмене отклика: ' + error.message, 'error');
+        });
+      }
+    }
+  </script>
+  
+
+  
+  <script>
+    // Обработчики для всех кнопок действий
+    document.addEventListener('DOMContentLoaded', function() {
+      // Кнопки просмотра заказов
+      document.querySelectorAll('.order-action-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          const orderId = this.getAttribute('data-order-id');
+          const action = this.getAttribute('data-action');
+          if (typeof openOrderDetailModal === 'function') {
+            openOrderDetailModal(orderId, action);
+          }
+        });
+      });
+
+      // Кнопки завершения заказа
+      document.querySelectorAll('.complete-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          const orderId = this.getAttribute('data-order-id');
+          if (typeof completeOrder === 'function') {
+            completeOrder(orderId);
+          }
+        });
+      });
+
+      // Кнопки принятия бронирования
+      document.querySelectorAll('.accept-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          const orderId = this.getAttribute('data-order-id');
+          if (typeof acceptBooking === 'function') {
+            acceptBooking(orderId);
+          }
+        });
+      });
+
+      // Кнопки отклонения бронирования
+      document.querySelectorAll('.reject-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          const orderId = this.getAttribute('data-order-id');
+          if (typeof rejectBooking === 'function') {
+            rejectBooking(orderId);
+          }
+        });
+      });
+
+      // Кнопки отмены заказа
+      document.querySelectorAll('.cancel-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          const orderId = this.getAttribute('data-order-id');
+          if (typeof cancelOrder === 'function') {
+            cancelOrder(orderId);
+          }
+        });
+      });
+
+      // Кнопки отмены отклика
+      document.querySelectorAll('.cancel-response-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          const responseId = this.getAttribute('data-response-id');
+          if (typeof cancelResponse === 'function') {
+            cancelResponse(responseId);
+          }
+        });
+      });
+    });
+  </script>
+
+<!-- Chat Modal -->
+<div id="chatModal" class="modal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('chatModal')">
+      <i class="ri-close-line"></i>
+    </button>
+    <div class="modal-header">
+      <h2 class="modal-title">Чат</h2>
+    </div>
+    <div class="chat-container">
+      <div class="chat-messages" id="chatMessages"></div>
+      <form id="chatForm" class="chat-input" onsubmit="sendMessage(event)">
+        {% csrf_token %}
+        <input type="text" class="form-input" placeholder="Введите сообщение..." required>
+        <button type="submit" class="btn accent">
+          <i class="ri-send-plane-fill"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно для просмотра фото -->
+<div id="photo-modal" class="photo-viewer-modal">
+  <div class="photo-viewer-content">
+    <button class="photo-viewer-close">&times;</button>
+    <img src="" alt="Просмотр фото" class="photo-viewer-img">
+  </div>
+</div>
+
+<script>
+  // Глобальная переменная для отслеживания состояния модального окна
+  let photoViewerOpen = false;
+
+  function openPhotoModal(imageUrl) {
+    // Проверяем, не открыто ли уже модальное окно
+    if (photoViewerOpen) {
+      return; // Не открываем, если уже открыто
+    }
+
+    const modal = document.getElementById('photo-modal');
+    const modalImg = modal.querySelector('.photo-viewer-img');
+    const closeButton = modal.querySelector('.photo-viewer-close');
+
+    // Устанавливаем правильное изображение
+    modalImg.src = imageUrl;
+    modalImg.alt = 'Просмотр фото';
+    
+    // Показываем модальное окно
+    modal.style.display = 'flex';
+    photoViewerOpen = true;
+
+    // Функция закрытия
+    function closePhotoViewer() {
+      modal.style.display = 'none';
+      // Очищаем src для экономии памяти
+      modalImg.src = '';
+      photoViewerOpen = false;
+      // Удаляем обработчик Escape
+      document.removeEventListener('keydown', handleEscape);
+    }
+
+    // Обработчики событий
+    closeButton.onclick = closePhotoViewer;
+    
+    modal.onclick = function(event) {
+      if (event.target === modal) {
+        closePhotoViewer();
+      }
+    };
+
+    // Закрытие по клавише Escape
+    function handleEscape(event) {
+      if (event.key === 'Escape') {
+        closePhotoViewer();
+      }
+    }
+    
+    document.addEventListener('keydown', handleEscape);
+  }
+
+  // Инициализация при загрузке страницы
+  document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('photo-modal');
+    if (modal) {
+      const modalImg = modal.querySelector('.photo-viewer-img');
+      
+      // Убеждаемся, что модальное окно скрыто при загрузке
+      modal.style.display = 'none';
+      photoViewerOpen = false;
+      if (modalImg) {
+        modalImg.src = '';
+      }
+    }
+  });
+</script>
+
+</body>
+</html> 

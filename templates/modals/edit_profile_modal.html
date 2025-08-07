@@ -1,0 +1,67 @@
+<!-- Edit Profile Modal -->
+<div id="editProfileModal" class="modal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('editProfileModal')">
+      <i class="ri-close-line"></i>
+    </button>
+    <div class="modal-header">
+      <h2 class="modal-title">Редактировать профиль</h2>
+    </div>
+    <form id="editProfileForm" action="{% url 'main:profile_settings' %}" method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Имя</label>
+          <input type="text" class="form-input" name="first_name" value="{{ user.first_name }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Фамилия</label>
+          <input type="text" class="form-input" name="last_name" value="{{ user.last_name }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" name="email" value="{{ user.email }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Город</label>
+          <select class="form-input" name="city" required>
+            <option value="">Выберите город</option>
+            {% for city in cities %}
+              <option value="{{ city.name }}" {% if user.city and user.city.name == city.name %}selected{% endif %}>{{ city.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Телефон</label>
+          <input type="tel" class="form-input" name="phone" value="{{ user.phone_number }}">
+        </div>
+      </div>
+      {% if user.user_type == 'performer' %}
+      <div class="form-group" style="margin-top: 20px;">
+        <label class="form-label">Название компании</label>
+        <input type="text" class="form-input" name="company_name" value="{{ user.company_name }}">
+      </div>
+      <div class="form-group" style="margin-top: 20px;">
+        <label class="form-label">Специализация</label>
+        <select class="form-input" name="service_type">
+          {% for service_type in service_types %}
+            <option value="{{ service_type.code }}" {% if user.service_type and user.service_type.code == service_type.code %}selected{% endif %}>{{ service_type.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+      <div class="form-group" style="margin-top: 20px;">
+        <label class="form-label">О себе</label>
+        <textarea class="form-input" name="bio" rows="4">{{ user.bio }}</textarea>
+      </div>
+      <div class="form-group" style="margin-top: 20px;">
+        <label class="form-label">Фото профиля</label>
+        <input type="file" class="form-input" name="profile_photo" accept="image/*">
+      </div>
+      <div class="form-footer" style="margin-top: 24px;">
+        <button type="submit" class="btn accent">Сохранить изменения</button>
+      </div>
+    </form>
+  </div>
+  </div>
+</div> 

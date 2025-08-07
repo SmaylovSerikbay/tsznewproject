@@ -1,0 +1,24 @@
+<!-- Messages Component -->
+<div class="container mx-auto px-4 mt-4">
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} mb-4" data-auto-dismiss>
+            <div class="flex items-center gap-2">
+                {% if message.tags == 'success' %}
+                    <i class="icon-check-circle"></i>
+                {% elif message.tags == 'error' %}
+                    <i class="icon-x-circle"></i>
+                {% elif message.tags == 'warning' %}
+                    <i class="icon-alert-triangle"></i>
+                {% elif message.tags == 'info' %}
+                    <i class="icon-info"></i>
+                {% endif %}
+                
+                <p>{{ message }}</p>
+                
+                <button class="ml-auto hover:text-gray-700" data-dismiss-alert>
+                    <i class="icon-x"></i>
+                </button>
+            </div>
+        </div>
+    {% endfor %}
+</div>

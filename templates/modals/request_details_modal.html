@@ -1,0 +1,31 @@
+<!-- Request Details Modal -->
+<div id="requestDetailsModal" class="modal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('requestDetailsModal')">
+      <i class="ri-close-line"></i>
+    </button>
+    <div class="modal-header">
+      <h2 class="modal-title">Детали заявки</h2>
+    </div>
+    <div class="request-details-content">
+      <div style="margin-bottom: 24px;">
+        <h3 style="margin-bottom: 12px;">Информация о мероприятии</h3>
+        <p><strong>Дата:</strong> <span id="eventDate"></span></p>
+        <p><strong>Город:</strong> <span id="eventCity"></span></p>
+        <p><strong>Тип мероприятия:</strong> <span id="eventType"></span></p>
+        <p><strong>Количество гостей:</strong> <span id="guestCount"></span></p>
+      </div>
+      <div style="margin-bottom: 24px;">
+        <h3 style="margin-bottom: 12px;">Требуемые услуги</h3>
+        <ul id="servicesList"></ul>
+      </div>
+      <div style="margin-bottom: 24px;">
+        <h3 style="margin-bottom: 12px;">Комментарий клиента</h3>
+        <p id="clientComment"></p>
+      </div>
+      <div class="form-footer">
+        <button class="btn accent" onclick="respondToRequest()">Откликнуться</button>
+      </div>
+    </div>
+  </div>
+</div> 

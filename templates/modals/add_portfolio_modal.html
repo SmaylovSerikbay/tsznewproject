@@ -1,0 +1,164 @@
+<!-- Add Portfolio Modal -->
+<div id="addPortfolioModal" class="modal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('addPortfolioModal')">
+      <i class="ri-close-line"></i>
+    </button>
+    <div class="modal-header">
+      <h2 class="modal-title">Добавить фото в портфолио</h2>
+    </div>
+    <form id="portfolioForm" action="{% url 'main:add_portfolio' %}" method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div id="dropzone" class="dropzone" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+        <i class="ri-upload-cloud-2-line" style="font-size: 48px; color: #2e6cff; margin-bottom: 16px;"></i>
+        <p>Перетащите фото сюда или <span style="color: #2e6cff; text-decoration: underline; cursor: pointer;" onclick="document.getElementById('portfolioUpload').click()">выберите файлы</span></p>
+        <input type="file" id="portfolioUpload" name="photos" multiple accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+        <div id="preview" class="preview-grid" style="margin-top: 20px;"></div>
+      </div>
+      <div class="form-footer" style="margin-top: 24px;">
+        <button type="submit" class="btn accent">Загрузить фото</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.dropzone {
+  border: 2px dashed #e3e8ff;
+  border-radius: 12px;
+  padding: 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #f8f9fa;
+}
+
+.dropzone.dragover {
+  border-color: #2e6cff;
+  background: #f5f8ff;
+}
+
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.preview-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-item .remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #e74c3c;
+  font-size: 18px;
+}
+</style>
+
+<script>
+let selectedFiles = new Map(); // Store files with unique IDs
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  document.getElementById('dropzone').classList.add('dragover');
+}
+
+function handleDragLeave(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  document.getElementById('dropzone').classList.remove('dragover');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  document.getElementById('dropzone').classList.remove('dragover');
+  
+  const dt = e.dataTransfer;
+  const files = dt.files;
+  
+  handleFiles(files);
+}
+
+function handleFileSelect(e) {
+  const files = e.target.files;
+  handleFiles(files);
+}
+
+function removeFile(fileId) {
+  selectedFiles.delete(fileId);
+  updateFileInput();
+}
+
+function updateFileInput() {
+  const dataTransfer = new DataTransfer();
+  for (const [_, file] of selectedFiles) {
+    dataTransfer.items.add(file);
+  }
+  document.getElementById('portfolioUpload').files = dataTransfer.files;
+}
+
+function handleFiles(files) {
+  const preview = document.getElementById('preview');
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+  
+  for (const file of files) {
+    if (!allowedTypes.includes(file.type)) {
+      continue;
+    }
+    
+    const fileId = Date.now() + Math.random().toString(36).substring(7);
+    selectedFiles.set(fileId, file);
+    
+    const reader = new FileReader();
+    const div = document.createElement('div');
+    div.className = 'preview-item';
+    
+    reader.onload = function(e) {
+      div.innerHTML = `
+        <img src="${e.target.result}" alt="Preview">
+        <div class="remove" onclick="removeFile('${fileId}'); this.parentElement.remove();">
+          <i class="ri-close-line"></i>
+        </div>
+      `;
+    };
+    
+    reader.readAsDataURL(file);
+    preview.appendChild(div);
+  }
+  
+  updateFileInput();
+}
+
+// Reset the form and selectedFiles when modal is closed
+function closePortfolioModal() {
+  selectedFiles.clear();
+  document.getElementById('preview').innerHTML = '';
+  document.getElementById('portfolioForm').reset();
+  closeModal('addPortfolioModal');
+}
+
+// Override the close button click handler
+document.querySelector('#addPortfolioModal .modal-close').onclick = closePortfolioModal;
+</script> 

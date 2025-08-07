@@ -1,0 +1,2410 @@
+{% load static %}
+{% load dict_extras %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Личный кабинет исполнителя — Той со звездой</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#3B82F6',
+              'primary-dark': '#2563EB',
+            accent: '#10B981',
+            'accent-dark': '#059669'
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Fonts and Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  
+  <!-- Стили для очень маленьких экранов -->
+  <style>
+    /* Стили для модальных окон */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.show,
+    .modal[style*="block"] {
+      display: flex !important;
+    }
+
+    .modal-content {
+      background-color: white;
+      padding: 0;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      max-width: 90vw;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      margin: 20px;
+      width: auto;
+      min-width: 400px;
+    }
+
+    @media (max-width: 640px) {
+      .modal-content {
+        min-width: 300px;
+        margin: 10px;
+      }
+    }
+
+    .modal-header {
+      padding: 24px 24px 0 24px;
+      border-bottom: 1px solid #e5e7eb;
+      margin-bottom: 24px;
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #1f2937;
+      margin: 0 0 16px 0;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #6b7280;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+      background-color: #f3f4f6;
+      color: #374151;
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+      padding: 0 24px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding: 0 24px;
+    }
+
+    @media (max-width: 640px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-footer {
+      padding: 24px;
+      border-top: 1px solid #e5e7eb;
+      margin-top: 24px;
+      text-align: right;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+    }
+
+    .btn.accent {
+      background-color: #3b82f6;
+      color: white;
+    }
+
+    .btn.accent:hover {
+      background-color: #2563eb;
+    }
+
+    .btn.outline {
+      background-color: white;
+      color: #374151;
+      border: 1px solid #d1d5db;
+    }
+
+    .btn.outline:hover {
+      background-color: #f9fafb;
+    }
+
+    /* Дополнительные стили для модальных окон */
+    .dropzone {
+      border: 2px dashed #e3e8ff;
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #f8f9fa;
+      margin: 0 24px 24px 24px;
+    }
+
+    .dropzone.dragover {
+      border-color: #2e6cff;
+      background: #f5f8ff;
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .preview-item {
+      position: relative;
+      aspect-ratio: 1;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .preview-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .preview-item .remove {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #e74c3c;
+      font-size: 18px;
+    }
+
+    .calendar-controls {
+      margin-bottom: 24px;
+      padding: 0 24px;
+    }
+
+    .weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      margin-top: 16px;
+      text-align: center;
+      font-weight: 500;
+      padding: 0 24px;
+    }
+
+    .calendar-wrapper {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      padding: 0 24px;
+    }
+    
+    .calendar-day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    
+    .calendar-day:hover {
+      background: #f0f0f0;
+    }
+
+    .calendar-day.selected {
+      background: #ffe5e5;
+      color: #e74c3c;
+    }
+
+    /* Дополнительные стили для модального окна деталей заказа */
+    #orderDetailModal {
+      display: none !important;
+    }
+
+    #orderDetailModal:not(.hidden) {
+      display: block !important;
+    }
+
+    .animate-spin {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 360px) {
+      .stats-grid {
+        gap: 0.25rem !important;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+      }
+      .stats-card {
+        padding: 0.375rem !important;
+      }
+      .stats-text {
+        font-size: 0.625rem !important;
+        line-height: 1 !important;
+      }
+      .nav-grid {
+        gap: 0.375rem !important;
+      }
+      .nav-btn {
+        padding: 0.5rem !important;
+      }
+      .nav-icon {
+        font-size: 1rem !important;
+        margin-right: 0.25rem !important;
+      }
+      .nav-text {
+        font-size: 0.75rem !important;
+      }
+      .card-buttons {
+        gap: 0.125rem !important;
+      }
+      .card-btn {
+        padding-left: 0.375rem !important;
+        padding-right: 0.375rem !important;
+        font-size: 0.625rem !important;
+      }
+    }
+
+    /* Анимации для уведомлений */
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body style="font-family: 'Inter', sans-serif;">
+  
+  <!-- Header -->
+  <header class="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-40">
+    <!-- Desktop Header -->
+    <div class="hidden md:block">
+      <div class="container mx-auto px-4">
+        <div class="flex items-center justify-between h-16">
+          <!-- Logo -->
+          <div class="flex items-center">
+            <div class="text-2xl font-bold text-primary">Той со звездой</div>
+          </div>
+          
+          <!-- Navigation -->
+          <nav class="flex items-center space-x-8">
+            <a href="{% url 'main:index' %}" class="flex items-center space-x-2 text-gray-600 hover:text-primary transition-colors">
+              <i class="ri-home-line text-lg"></i>
+          <span>Главная</span>
+        </a>
+            <a href="{% url 'main:catalog' %}" class="flex items-center space-x-2 text-gray-600 hover:text-primary transition-colors">
+              <i class="ri-group-line text-lg"></i>
+          <span>Исполнители</span>
+        </a>
+            {% if user.is_authenticated %}
+              <!-- User Dropdown -->
+            <div class="relative">
+                <button class="flex items-center space-x-3 text-gray-700 hover:text-primary transition-colors" onclick="toggleUserDropdown()">
+                  <div class="flex items-center space-x-2">
+                {% if user.profile_photo %}
+                  <img src="{{ user.profile_photo.url }}" alt="{{ user.get_full_name }}" class="w-8 h-8 rounded-full object-cover">
+                {% else %}
+                  <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                        <i class="ri-user-line text-gray-600"></i>
+              </div>
+                {% endif %}
+                <span class="font-medium">{{ user.get_full_name|default:user.phone_number }}</span>
+                  </div>
+              <i class="ri-arrow-down-s-line"></i>
+            </button>
+                <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 hidden">
+                  <div class="py-2">
+                    <a href="{% url 'main:dashboard' %}" class="flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-gray-50">
+                      <i class="ri-dashboard-line"></i>
+                      <span>Личный кабинет</span>
+                    </a>
+                    <a href="{% url 'main:logout' %}" class="flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-gray-50">
+                <i class="ri-logout-box-line"></i>
+                <span>Выйти</span>
+              </a>
+            </div>
+          </div>
+          </div>
+            {% else %}
+              <a href="{% url 'main:auth' %}" class="flex items-center space-x-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors">
+                <i class="ri-login-box-line"></i>
+                <span>Войти</span>
+              </a>
+            {% endif %}
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="md:hidden">
+      <div class="flex items-center justify-between h-14 px-4">
+        <div class="flex items-center space-x-3">
+          <div class="text-lg font-bold text-primary">Личный кабинет</div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button class="p-2" aria-label="Открыть меню" onclick="toggleMobileMenu()">
+            <i class="ri-menu-line text-xl text-gray-600"></i>
+      </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Menu -->
+  <div id="mobileMenu" class="md:hidden fixed inset-0 z-50 bg-black bg-opacity-50 opacity-0 invisible transition-all duration-300">
+    <div class="fixed right-0 top-0 h-full w-80 bg-white shadow-xl transform translate-x-full transition-transform duration-300">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-8">
+          <div class="text-xl font-bold text-primary">Меню</div>
+          <button onclick="toggleMobileMenu()" class="p-2 text-gray-500 hover:text-gray-700">
+            <i class="ri-close-line text-xl"></i>
+          </button>
+        </div>
+        <nav class="space-y-4">
+          <a href="{% url 'main:index' %}" class="flex items-center space-x-3 p-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+            <i class="ri-home-line text-xl"></i>
+          <span>Главная</span>
+        </a>
+          <a href="{% url 'main:catalog' %}" class="flex items-center space-x-3 p-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+            <i class="ri-user-star-line text-xl"></i>
+          <span>Исполнители</span>
+        </a>
+          {% if user.is_authenticated %}
+            <div class="border-t pt-4">
+              <div class="flex items-center space-x-3 p-3 mb-2">
+                {% if user.profile_photo %}
+                  <img src="{{ user.profile_photo.url }}" alt="{{ user.get_full_name }}" class="w-10 h-10 rounded-full object-cover">
+                {% else %}
+                  <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                    <i class="ri-user-line text-gray-600"></i>
+                  </div>
+                {% endif %}
+                <span class="font-medium text-gray-900">{{ user.get_full_name|default:user.phone_number }}</span>
+              </div>
+              <a href="{% url 'main:dashboard' %}" class="flex items-center space-x-3 p-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                <i class="ri-dashboard-line text-xl"></i>
+                <span>Личный кабинет</span>
+              </a>
+              <a href="{% url 'main:logout' %}" class="flex items-center space-x-3 p-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+            <i class="ri-logout-box-line text-xl"></i>
+                <span>Выйти</span>
+              </a>
+            </div>
+          {% else %}
+            <a href="{% url 'main:auth' %}" class="flex items-center space-x-3 p-3 bg-primary text-white rounded-lg transition-colors">
+              <i class="ri-login-box-line text-xl"></i>
+              <span>Войти</span>
+            </a>
+          {% endif %}
+        </nav>
+            </div>
+          </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="pt-16 md:pt-20 min-h-screen bg-gray-50">
+    <div class="container mx-auto px-4 py-6">
+      
+      <!-- Desktop Статистика -->
+      <div class="hidden md:block bg-white rounded-xl shadow-sm border p-6 mb-6">
+        <div class="grid grid-cols-4 gap-4">
+          <div class="text-center p-4">
+            <div class="text-3xl font-bold text-blue-600 mb-1">{{ completed_orders_count }}</div>
+            <div class="text-sm text-gray-600">Выполнено заказов</div>
+          </div>
+          <div class="text-center p-4">
+            <div class="text-3xl font-bold text-orange-600 mb-1">{{ new_requests_count }}</div>
+            <div class="text-sm text-gray-600">Новых заявок</div>
+          </div>
+          <div class="text-center p-4">
+            <div class="text-3xl font-bold text-green-600 mb-1">{{ active_bookings_count }}</div>
+            <div class="text-sm text-gray-600">Активных заказов</div>
+          </div>
+          <div class="text-center p-4">
+            <div class="text-3xl font-bold text-yellow-600 mb-1">{{ rating|floatformat:1 }}</div>
+            <div class="text-sm text-gray-600">Средний рейтинг</div>
+          </div>
+    </div>
+  </div>
+
+      <!-- Mobile Статистика -->
+      <div class="stats-grid md:hidden grid grid-cols-4 gap-1 px-3 mb-4">
+        <div class="stats-card bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-2 text-white text-center">
+          <div class="text-lg font-bold">{{ completed_orders_count }}</div>
+          <div class="stats-text text-xs opacity-90 leading-tight">Выполнено</div>
+        </div>
+        <div class="stats-card bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-2 text-white text-center">
+          <div class="text-lg font-bold">{{ new_requests_count }}</div>
+          <div class="stats-text text-xs opacity-90 leading-tight">Новых</div>
+        </div>
+        <div class="stats-card bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-2 text-white text-center">
+          <div class="text-lg font-bold">{{ active_bookings_count }}</div>
+          <div class="stats-text text-xs opacity-90 leading-tight">Активных</div>
+        </div>
+        <div class="stats-card bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg p-2 text-white text-center">
+          <div class="text-lg font-bold">{{ rating|floatformat:1 }}</div>
+          <div class="stats-text text-xs opacity-90 leading-tight">Рейтинг</div>
+        </div>
+      </div>
+
+      <!-- Desktop Navigation Tabs -->
+      <div class="hidden md:block bg-white rounded-xl shadow-sm border mb-6">
+        <div class="border-b border-gray-200">
+          <nav class="flex space-x-8 px-6" aria-label="Tabs">
+            <button onclick="showTab('orders', this)" class="tab-btn border-b-2 border-primary text-primary py-4 px-1 text-sm font-medium" aria-current="page">
+              Заказы
+        </button>
+            <button onclick="showTab('portfolio', this)" class="tab-btn border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 text-sm font-medium">
+              Портфолио
+        </button>
+            <button onclick="showTab('tariffs', this)" class="tab-btn border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 text-sm font-medium">
+              Тарифы
+        </button>
+            <button onclick="showTab('calendar', this)" class="tab-btn border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 text-sm font-medium">
+              Календарь
+        </button>
+            <button onclick="showTab('profile', this)" class="tab-btn border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 text-sm font-medium">
+              Профиль
+        </button>
+          </nav>
+        </div>
+      </div>
+      
+      <!-- Mobile Navigation -->
+      <div class="nav-grid md:hidden grid grid-cols-2 gap-2 mb-6">
+        <button onclick="showTab('orders', this)" class="nav-btn mobile-nav-btn flex items-center p-3 rounded-xl bg-blue-50 text-blue-600 active">
+          <i class="nav-icon ri-file-list-line text-xl mr-2"></i>
+          <div class="text-left min-w-0 flex-1">
+            <div class="nav-text text-sm font-semibold truncate">Заказы</div>
+            <div class="text-xs opacity-75">{{ orders_count }}</div>
+          </div>
+        </button>
+        <button onclick="showTab('portfolio', this)" class="nav-btn mobile-nav-btn flex items-center p-3 rounded-xl bg-gray-100 text-gray-600">
+          <i class="nav-icon ri-gallery-line text-xl mr-2"></i>
+          <div class="text-left min-w-0 flex-1">
+            <div class="nav-text text-sm font-semibold truncate">Портфолио</div>
+            <div class="text-xs opacity-75">{{ portfolio_count }}</div>
+          </div>
+          </button>
+        <button onclick="showTab('tariffs', this)" class="nav-btn mobile-nav-btn flex items-center p-3 rounded-xl bg-gray-100 text-gray-600">
+          <i class="nav-icon ri-money-dollar-circle-line text-xl mr-2"></i>
+          <div class="text-left min-w-0 flex-1">
+            <div class="nav-text text-sm font-semibold truncate">Тарифы</div>
+            <div class="text-xs opacity-75">{{ tariffs_count }}</div>
+          </div>
+          </button>
+        <button onclick="showTab('profile', this)" class="nav-btn mobile-nav-btn flex items-center p-3 rounded-xl bg-gray-100 text-gray-600">
+          <i class="nav-icon ri-user-settings-line text-xl mr-2"></i>
+          <div class="text-left min-w-0 flex-1">
+            <div class="nav-text text-sm font-semibold truncate">Профиль</div>
+            <div class="text-xs opacity-75"></div>
+          </div>
+          </button>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="bg-white rounded-xl shadow-sm border">
+        
+        <!-- Заказы Tab -->
+        <div id="ordersTab" class="tab-content p-6">
+
+          <!-- Доступные заявки -->
+          <div class="mb-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Доступные заявки ({{ new_requests_count }})</h3>
+            
+            <!-- Desktop Table -->
+            <div class="hidden md:block overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Название</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Город</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Бюджет</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
+              </tr>
+            </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+              {% for order in available_orders %}
+              <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">{{ order.title }}</div>
+                      <div class="text-sm text-gray-500">{{ order.get_event_type_display }}</div>
+                </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {{ order.event_date|date:"d.m.Y" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {{ order.city }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <span class="font-medium">{{ order.budget }} ₸</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {{ order.get_status_display }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div class="flex gap-2">
+                        <button data-order-id="{{ order.id }}" data-action="respond" class="order-action-btn bg-primary text-white px-3 py-1 rounded text-xs hover:bg-primary-dark">
+                          Откликнуться
+                        </button>
+                        <button data-order-id="{{ order.id }}" data-action="view" class="order-action-btn text-indigo-600 hover:text-indigo-900 px-3 py-1 rounded text-xs border border-indigo-600">
+                          Подробнее
+                        </button>
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                    <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                      <div class="flex flex-col items-center">
+                        <i class="ri-search-line text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-lg font-medium mb-2">Нет доступных заявок</p>
+                        <p class="text-sm">Пока нет новых заявок для вас</p>
+                      </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+            <!-- Mobile Cards -->
+            <div class="md:hidden space-y-3">
+          {% for order in available_orders %}
+              <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                <!-- Header Row -->
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span class="text-xs font-medium text-blue-700 bg-blue-50 px-2 py-1 rounded-full">
+                      {{ order.get_status_display }}
+                    </span>
+              </div>
+                  <div class="text-xs text-gray-500">{{ order.event_date|date:"d.m" }}</div>
+            </div>
+                
+                <!-- Title and Details -->
+                <div class="mb-3">
+                  <h4 class="text-base font-semibold text-gray-900 mb-1 truncate">{{ order.title }}</h4>
+                  <p class="text-sm text-gray-600">{{ order.get_event_type_display }}</p>
+              </div>
+                
+                <!-- Info Grid -->
+                <div class="grid grid-cols-2 gap-2 mb-4 text-sm">
+                  <div class="flex items-center text-gray-600">
+                    <i class="ri-map-pin-line text-gray-400 mr-1"></i>
+                    <span>{{ order.city }}</span>
+              </div>
+                  <div class="flex items-center text-gray-600">
+                    <i class="ri-price-tag-3-line text-green-500 mr-1"></i>
+                    <span class="font-medium">{{ order.budget }} ₸</span>
+              </div>
+            </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex gap-2">
+                  <button data-order-id="{{ order.id }}" data-action="respond" class="order-action-btn flex-1 bg-primary text-white py-2.5 px-3 rounded-xl text-sm font-medium active:bg-primary-dark transition-colors">
+                    <i class="ri-add-line mr-1"></i>Откликнуться
+              </button>
+                  <button data-order-id="{{ order.id }}" data-action="view" class="order-action-btn bg-gray-100 text-gray-700 py-2.5 px-3 rounded-xl text-sm font-medium active:bg-gray-200 transition-colors">
+                    <i class="ri-eye-line mr-1"></i>Подробнее
+              </button>
+            </div>
+          </div>
+          {% empty %}
+              <div class="text-center py-12">
+                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <i class="ri-search-line text-gray-400 text-2xl"></i>
+                </div>
+                <p class="text-gray-500 mb-2">Нет доступных заявок</p>
+                <p class="text-sm text-gray-400">Пока нет новых заявок для вас</p>
+          </div>
+          {% endfor %}
+            </div>
+        </div>
+
+          <!-- Мои активные заказы -->
+          <div class="mb-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Мои активные заказы</h3>
+            
+            <!-- Desktop Table -->
+            <div class="hidden md:block overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Название</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Заказчик</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Тип</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Бюджет</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
+              </tr>
+            </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+              {% for order in active_orders %}
+              <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">{{ order.title }}</div>
+                      <div class="text-sm text-gray-500">{{ order.get_event_type_display }}</div>
+                </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        {% if order.customer.profile_photo %}
+                          <img src="{{ order.customer.profile_photo.url }}" alt="Фото заказчика" class="w-8 h-8 rounded-full object-cover mr-3">
+                        {% else %}
+                          <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-3">
+                            <i class="ri-user-line text-gray-500 text-sm"></i>
+                          </div>
+                        {% endif %}
+                        <div>
+                          <div class="text-sm font-medium text-gray-900">{{ order.customer.get_full_name }}</div>
+                          <div class="text-sm text-gray-500">{{ order.customer.city.name|default:"Город не указан" }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {{ order.event_date|date:"d.m.Y" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {% if order.order_type == 'booking' %}
+                        <i class="ri-calendar-check-line text-blue-500"></i> Бронирование
+                  {% else %}
+                        <i class="ri-file-list-line text-gray-500"></i> Заявка
+                  {% endif %}
+                </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                    {% if order.status == 'in_progress' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          {{ order.get_status_display }}
+                        </span>
+                      {% elif order.status == 'new' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {{ order.get_status_display }}
+                        </span>
+                      {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <span class="font-medium">{{ order.budget }} ₸</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div class="flex gap-2">
+                        <button data-order-id="{{ order.id }}" data-action="view" class="order-action-btn text-indigo-600 hover:text-indigo-900 px-3 py-1 rounded text-xs border border-indigo-600">
+                          Подробнее
+                        </button>
+                        {% if order.status == 'in_progress' %}
+                          <a href="https://wa.me/{{ order.customer.phone_number }}?text=Здравствуйте! У меня есть вопрос по заказу {{ order.title }}" target="_blank" class="text-green-600 hover:text-green-900 px-3 py-1 rounded text-xs border border-green-600">
+                            <i class="ri-whatsapp-line mr-1"></i>WhatsApp
+                          </a>
+                          <button data-order-id="{{ order.id }}" data-action="complete" class="complete-btn text-green-600 hover:text-green-900 px-3 py-1 rounded text-xs border border-green-600">
+                            Завершить
+                          </button>
+                    {% elif order.status == 'new' %}
+                      {% if order.order_type == 'booking' %}
+                            <button data-order-id="{{ order.id }}" data-action="accept" class="accept-btn text-green-600 hover:text-green-900 px-3 py-1 rounded text-xs border border-green-600">
+                              Принять
+                            </button>
+                            <button data-order-id="{{ order.id }}" data-action="reject" class="reject-btn text-red-600 hover:text-red-900 px-3 py-1 rounded text-xs border border-red-600">
+                              Отклонить
+                            </button>
+                      {% else %}
+                            <a href="https://wa.me/{{ order.customer.phone_number }}?text=Здравствуйте! У меня есть вопрос по заказу {{ order.title }}" target="_blank" class="text-green-600 hover:text-green-900 px-3 py-1 rounded text-xs border border-green-600">
+                              <i class="ri-whatsapp-line mr-1"></i>WhatsApp
+                            </a>
+                            <button data-order-id="{{ order.id }}" data-action="cancel" class="cancel-btn text-red-600 hover:text-red-900 px-3 py-1 rounded text-xs border border-red-600">
+                              Отменить
+                            </button>
+                      {% endif %}
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                    <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                      <div class="flex flex-col items-center">
+                        <i class="ri-shopping-bag-line text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-lg font-medium mb-2">У вас пока нет активных заказов</p>
+                        <p class="text-sm">Здесь будут отображаться ваши текущие заказы</p>
+                      </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+            <!-- Mobile Cards -->
+            <div class="md:hidden space-y-3">
+          {% for order in active_orders %}
+              <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                <!-- Header Row -->
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center space-x-2">
+                    {% if order.status == 'in_progress' %}
+                      <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                      <span class="text-xs font-medium text-yellow-700 bg-yellow-50 px-2 py-1 rounded-full">
+                        {{ order.get_status_display }}
+                      </span>
+                    {% elif order.status == 'new' %}
+                      <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span class="text-xs font-medium text-blue-700 bg-blue-50 px-2 py-1 rounded-full">
+                        {{ order.get_status_display }}
+                      </span>
+                    {% endif %}
+              </div>
+                  <div class="text-xs text-gray-500">{{ order.event_date|date:"d.m" }}</div>
+            </div>
+                
+                <!-- Title and Details -->
+                <div class="mb-3">
+                  <h4 class="text-base font-semibold text-gray-900 mb-1 truncate">{{ order.title }}</h4>
+                  <p class="text-sm text-gray-600">{{ order.get_event_type_display }}</p>
+                  
+                  <!-- Заказчик -->
+                  <div class="flex items-center mt-2">
+                    {% if order.customer.profile_photo %}
+                      <img src="{{ order.customer.profile_photo.url }}" alt="Фото заказчика" class="w-6 h-6 rounded-full object-cover mr-2">
+                    {% else %}
+                      <div class="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center mr-2">
+                        <i class="ri-user-line text-gray-500 text-xs"></i>
+                      </div>
+                    {% endif %}
+                    <div class="text-xs text-gray-600">
+                      <span class="font-medium">{{ order.customer.get_full_name }}</span>
+                      {% if order.customer.city %}
+                        <span class="text-gray-500"> • {{ order.customer.city.name }}</span>
+                      {% endif %}
+                    </div>
+                  </div>
+              </div>
+                
+                <!-- Info Grid -->
+                <div class="grid grid-cols-2 gap-2 mb-4 text-sm">
+                  <div class="flex items-center text-gray-600">
+                    <i class="ri-file-list-line text-gray-400 mr-1"></i>
+                    <span>
+                  {% if order.order_type == 'booking' %}
+                        Бронирование
+                  {% else %}
+                        Заявка
+                  {% endif %}
+                </span>
+              </div>
+                  <div class="flex items-center text-gray-600">
+                    <i class="ri-price-tag-3-line text-green-500 mr-1"></i>
+                    <span class="font-medium">{{ order.budget }} ₸</span>
+              </div>
+            </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex gap-2">
+                  <button data-order-id="{{ order.id }}" data-action="view" class="order-action-btn bg-gray-100 text-gray-700 py-2 px-3 rounded-xl text-sm font-medium active:bg-gray-200 transition-colors">
+                    <i class="ri-eye-line mr-1"></i>Подробнее
+              </button>
+              {% if order.status == 'in_progress' %}
+                    <a href="https://wa.me/{{ order.customer.phone_number }}?text=Здравствуйте! У меня есть вопрос по заказу {{ order.title }}" target="_blank" class="bg-green-100 text-green-700 py-2 px-3 rounded-xl text-sm font-medium active:bg-green-200 transition-colors">
+                      <i class="ri-whatsapp-line mr-1"></i>WhatsApp
+                    </a>
+                    <button data-order-id="{{ order.id }}" data-action="complete" class="complete-btn bg-green-100 text-green-700 py-2 px-3 rounded-xl text-sm font-medium active:bg-green-200 transition-colors">
+                      <i class="ri-check-line mr-1"></i>Завершить
+                </button>
+              {% elif order.status == 'new' %}
+                {% if order.order_type == 'booking' %}
+                      <button data-order-id="{{ order.id }}" data-action="accept" class="accept-btn bg-green-100 text-green-700 py-2 px-3 rounded-xl text-sm font-medium active:bg-green-200 transition-colors">
+                        <i class="ri-check-line mr-1"></i>Принять
+                  </button>
+                      <button data-order-id="{{ order.id }}" data-action="reject" class="reject-btn bg-red-100 text-red-700 py-2 px-3 rounded-xl text-sm font-medium active:bg-red-200 transition-colors">
+                        <i class="ri-close-line mr-1"></i>Отклонить
+                  </button>
+                {% else %}
+                      <a href="https://wa.me/{{ order.customer.phone_number }}?text=Здравствуйте! У меня есть вопрос по заказу {{ order.title }}" target="_blank" class="bg-green-100 text-green-700 py-2 px-3 rounded-xl text-sm font-medium active:bg-green-200 transition-colors">
+                        <i class="ri-whatsapp-line mr-1"></i>WhatsApp
+                      </a>
+                      <button data-order-id="{{ order.id }}" data-action="cancel" class="cancel-btn bg-red-100 text-red-700 py-2 px-3 rounded-xl text-sm font-medium active:bg-red-200 transition-colors">
+                        <i class="ri-close-line mr-1"></i>Отменить
+                  </button>
+                {% endif %}
+              {% endif %}
+            </div>
+          </div>
+          {% empty %}
+              <div class="text-center py-12">
+                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <i class="ri-shopping-bag-line text-gray-400 text-2xl"></i>
+                </div>
+                <p class="text-gray-500 mb-2">У вас пока нет активных заказов</p>
+                <p class="text-sm text-gray-400">Здесь будут отображаться ваши текущие заказы</p>
+          </div>
+          {% endfor %}
+            </div>
+        </div>
+
+          <!-- Мои отклики -->
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Мои отклики</h3>
+            
+            <!-- Desktop Table -->
+            <div class="hidden md:block overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Заказ</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата отклика</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
+              </tr>
+            </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+              {% for response in my_responses %}
+              <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">{{ response.order.title }}</div>
+                      <div class="text-sm text-gray-500">{{ response.order.get_event_type_display }}</div>
+                </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {{ response.created_at|date:"d.m.Y H:i" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      {% if response.status == 'pending' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          Ожидает
+                        </span>
+                      {% elif response.status == 'accepted' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Принят
+                        </span>
+                      {% elif response.status == 'rejected' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          Отклонен
+                        </span>
+                      {% elif response.status == 'cancelled' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          Отменен
+                        </span>
+                      {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div class="flex gap-2">
+                        <button data-order-id="{{ response.order.id }}" data-action="view" class="order-action-btn text-indigo-600 hover:text-indigo-900 px-3 py-1 rounded text-xs border border-indigo-600">
+                          Подробнее
+                        </button>
+                    {% if response.order.status == 'new' and response.status != 'cancelled' %}
+                          <button data-response-id="{{ response.id }}" data-action="cancel-response" class="cancel-response-btn text-red-600 hover:text-red-900 px-3 py-1 rounded text-xs border border-red-600">
+                            Отменить отклик
+                          </button>
+                    {% elif response.order.status == 'in_progress' %}
+                      {% with selected_performers=response.order.selected_performers|default:"{}" %}
+                        {% if response.performer.service_type.code in selected_performers and selected_performers|get_item:response.performer.service_type.code == response.performer.id %}
+                              <span class="text-green-600 px-3 py-1 text-xs">Принят</span>
+                        {% elif response.status != 'cancelled' %}
+                              <button data-response-id="{{ response.id }}" data-action="cancel-response" class="cancel-response-btn text-red-600 hover:text-red-900 px-3 py-1 rounded text-xs border border-red-600">
+                                Отменить отклик
+                              </button>
+                        {% endif %}
+                      {% endwith %}
+                    {% elif response.order.status == 'cancelled' %}
+                          <span class="text-red-600 px-3 py-1 text-xs">Заказ отменен</span>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                    <td colspan="4" class="px-6 py-12 text-center text-gray-500">
+                      <div class="flex flex-col items-center">
+                        <i class="ri-chat-smile-line text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-lg font-medium mb-2">Нет откликов</p>
+                        <p class="text-sm">Ваши отклики на заявки будут отображаться здесь</p>
+                      </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+            <!-- Mobile Cards -->
+            <div class="md:hidden space-y-3">
+          {% for response in my_responses %}
+              <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                <!-- Header Row -->
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center space-x-2">
+                    {% if response.status == 'pending' %}
+                      <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                      <span class="text-xs font-medium text-yellow-700 bg-yellow-50 px-2 py-1 rounded-full">
+                        Ожидает
+                </span>
+                    {% elif response.status == 'accepted' %}
+                      <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span class="text-xs font-medium text-green-700 bg-green-50 px-2 py-1 rounded-full">
+                        Принят
+                </span>
+                    {% elif response.status == 'rejected' %}
+                      <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                      <span class="text-xs font-medium text-red-700 bg-red-50 px-2 py-1 rounded-full">
+                        Отклонен
+                </span>
+                    {% elif response.status == 'cancelled' %}
+                      <div class="w-2 h-2 bg-gray-500 rounded-full"></div>
+                      <span class="text-xs font-medium text-gray-700 bg-gray-50 px-2 py-1 rounded-full">
+                        Отменен
+                </span>
+                    {% endif %}
+              </div>
+                  <div class="text-xs text-gray-500">{{ response.created_at|date:"d.m H:i" }}</div>
+            </div>
+                
+                <!-- Title and Details -->
+                <div class="mb-4">
+                  <h4 class="text-base font-semibold text-gray-900 mb-1 truncate">{{ response.order.title }}</h4>
+                  <p class="text-sm text-gray-600">{{ response.order.get_event_type_display }}</p>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex gap-2 flex-wrap">
+                  <button data-order-id="{{ response.order.id }}" data-action="view" class="order-action-btn bg-gray-100 text-gray-700 py-2.5 px-4 rounded-xl text-sm font-medium active:bg-gray-200 transition-colors">
+                    <i class="ri-eye-line mr-1"></i>Подробнее
+              </button>
+              {% if response.order.status == 'new' and response.status != 'cancelled' %}
+                    <button data-response-id="{{ response.id }}" data-action="cancel-response" class="cancel-response-btn bg-red-100 text-red-700 py-2.5 px-4 rounded-xl text-sm font-medium active:bg-red-200 transition-colors">
+                      <i class="ri-close-line mr-1"></i>Отменить отклик
+                </button>
+              {% elif response.order.status == 'in_progress' %}
+                {% with selected_performers=response.order.selected_performers|default:"{}" %}
+                  {% if response.performer.service_type.code in selected_performers and selected_performers|get_item:response.performer.service_type.code == response.performer.id %}
+                        <span class="bg-green-100 text-green-700 py-2.5 px-4 rounded-xl text-sm font-medium">
+                          <i class="ri-check-line mr-1"></i>Принят
+                    </span>
+                  {% elif response.status != 'cancelled' %}
+                        <button data-response-id="{{ response.id }}" data-action="cancel-response" class="cancel-response-btn bg-red-100 text-red-700 py-2.5 px-4 rounded-xl text-sm font-medium active:bg-red-200 transition-colors">
+                          <i class="ri-close-line mr-1"></i>Отменить отклик
+                    </button>
+                  {% endif %}
+                {% endwith %}
+              {% elif response.order.status == 'cancelled' %}
+                    <span class="bg-red-100 text-red-700 py-2.5 px-4 rounded-xl text-sm font-medium">
+                      <i class="ri-close-line mr-1"></i>Заказ отменен
+                </span>
+              {% endif %}
+            </div>
+          </div>
+          {% empty %}
+              <div class="text-center py-12">
+                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <i class="ri-chat-smile-line text-gray-400 text-2xl"></i>
+                </div>
+                <p class="text-gray-500 mb-2">Нет откликов</p>
+                <p class="text-sm text-gray-400">Ваши отклики на заявки будут отображаться здесь</p>
+          </div>
+          {% endfor %}
+            </div>
+        </div>
+        </div>
+
+        <!-- Portfolio Tab -->
+        <div id="portfolioTab" class="tab-content hidden p-6">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+            <div>
+              <h2 class="text-xl font-semibold text-gray-900">Портфолио</h2>
+              <p class="text-sm text-gray-600 mt-1">Управляйте вашим портфолио</p>
+            </div>
+            <div class="flex gap-2 mt-4 md:mt-0">
+              <button onclick="openModal('addPortfolioModal')" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors">
+                <i class="ri-image-line mr-2"></i>Добавить фото
+              </button>
+              <button onclick="alert('Функция добавления видео будет доступна позже')" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors">
+                <i class="ri-video-line mr-2"></i>Добавить видео
+              </button>
+            </div>
+          </div>
+          
+          <!-- Portfolio Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {% for photo in portfolio_photos %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onclick="openPhotoModal('{{ photo.image.url }}')">
+              <div class="aspect-square overflow-hidden">
+                <img src="{{ photo.image.url }}" alt="Портфолио" class="w-full h-full object-cover">
+              </div>
+              <div class="p-4">
+                <div class="text-sm font-medium text-gray-900 mb-2">Фото #{{ forloop.counter }}</div>
+                <form action="{% url 'main:delete_portfolio_photo' photo.id %}" method="POST" onclick="event.stopPropagation()">
+                {% csrf_token %}
+                  <button type="submit" onclick="return confirm('Удалить это фото?')" class="text-red-600 hover:text-red-900 text-sm font-medium">
+                    <i class="ri-delete-bin-line mr-1"></i>Удалить
+                </button>
+              </form>
+            </div>
+              </div>
+          {% empty %}
+            <div class="col-span-full text-center py-12">
+              <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="ri-gallery-line text-gray-400 text-2xl"></i>
+              </div>
+              <p class="text-gray-500 mb-4">Добавьте фото в ваше портфолио</p>
+              <button onclick="openModal('addPortfolioModal')" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
+                <i class="ri-image-line mr-2"></i>Добавить первое фото
+              </button>
+            </div>
+          {% endfor %}
+          </div>
+        </div>
+
+        <!-- Tariffs Tab -->
+        <div id="tariffsTab" class="tab-content hidden p-6">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+            <div>
+              <h2 class="text-xl font-semibold text-gray-900">Тарифы</h2>
+              <p class="text-sm text-gray-600 mt-1">Управляйте вашими тарифами</p>
+            </div>
+            <button onclick="addTariff()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors mt-4 md:mt-0">
+              <i class="ri-add-line mr-2"></i>Добавить тариф
+            </button>
+          </div>
+
+          <!-- Desktop Table -->
+          <div class="hidden md:block overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Название</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Цена</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Описание</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
+              </tr>
+            </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+            {% for tariff in tariffs %}
+              <tr>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">{{ tariff.name }}</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-bold text-green-600">{{ tariff.price }} ₸</div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="text-sm text-gray-500">{{ tariff.description|truncatechars:100 }}</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div class="flex gap-2">
+                      <button onclick="editTariff('{{ tariff.id }}')" class="text-indigo-600 hover:text-indigo-900">
+                  <i class="ri-edit-line"></i>
+                </button>
+                <form action="{% url 'main:delete_tariff' tariff.id %}" method="POST" style="display: inline;">
+                  {% csrf_token %}
+                        <button type="submit" onclick="return confirm('Удалить этот тариф?')" class="text-red-600 hover:text-red-900">
+                    <i class="ri-delete-bin-line"></i>
+                  </button>
+                </form>
+            </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                  <td colspan="4" class="px-6 py-12 text-center text-gray-500">
+                    <div class="flex flex-col items-center">
+                      <i class="ri-money-dollar-circle-line text-4xl text-gray-300 mb-4"></i>
+                      <p class="text-lg font-medium mb-2">Нет тарифов</p>
+                      <p class="text-sm">Добавьте ваши тарифы</p>
+                    </div>
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          </div>
+
+          <!-- Mobile Cards -->
+          <div class="md:hidden space-y-3">
+            {% for tariff in tariffs %}
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+              <div class="flex justify-between items-start mb-3">
+                <div class="flex-1">
+                  <h4 class="text-base font-semibold text-gray-900 mb-1">{{ tariff.name }}</h4>
+                  <p class="text-lg font-bold text-green-600">{{ tariff.price }} ₸</p>
+          </div>
+        </div>
+
+              <div class="mb-4">
+                <p class="text-sm text-gray-600">{{ tariff.description|truncatechars:100 }}</p>
+              </div>
+              
+              <div class="flex gap-2">
+                <button onclick="editTariff('{{ tariff.id }}')" class="flex-1 bg-blue-100 text-blue-700 py-2.5 px-3 rounded-xl text-sm font-medium active:bg-blue-200 transition-colors">
+                  <i class="ri-edit-line mr-1"></i>Редактировать
+          </button>
+                <form action="{% url 'main:delete_tariff' tariff.id %}" method="POST" style="display: inline;">
+                  {% csrf_token %}
+                  <button type="submit" onclick="return confirm('Удалить этот тариф?')" class="bg-red-100 text-red-700 py-2.5 px-3 rounded-xl text-sm font-medium active:bg-red-200 transition-colors">
+                    <i class="ri-delete-bin-line"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-12">
+              <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="ri-money-dollar-circle-line text-gray-400 text-2xl"></i>
+              </div>
+              <p class="text-gray-500 mb-4">Добавьте ваши тарифы</p>
+              <button onclick="addTariff()" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
+                <i class="ri-add-line mr-2"></i>Добавить первый тариф
+              </button>
+            </div>
+            {% endfor %}
+          </div>
+          </div>
+
+        <!-- Calendar Tab -->
+        <div id="calendarTab" class="tab-content hidden p-6">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+            <div>
+              <h2 class="text-xl font-semibold text-gray-900">Календарь</h2>
+              <p class="text-sm text-gray-600 mt-1">Управляйте занятыми датами</p>
+            </div>
+            <button onclick="openCalendarModal()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors mt-4 md:mt-0">
+              <i class="ri-calendar-line mr-2"></i>Управление календарем
+            </button>
+          </div>
+
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Занятые даты</h3>
+          
+          <!-- Calendar Grid -->
+          <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+            {% for date in busy_dates %}
+            <div class="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
+              <div class="text-lg font-bold text-red-600">{{ date.date|date:"d" }}</div>
+              <div class="text-xs text-red-500">{{ date.date|date:"M" }}</div>
+            </div>
+            {% empty %}
+            <div class="col-span-full text-center py-12">
+              <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="ri-calendar-line text-gray-400 text-2xl"></i>
+              </div>
+              <p class="text-gray-500 mb-4">Нет отмеченных занятых дат</p>
+              <button onclick="openCalendarModal()" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
+                <i class="ri-calendar-line mr-2"></i>Отметить занятые даты
+              </button>
+          </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Profile Tab -->
+        <div id="profileTab" class="tab-content hidden p-6">
+          <!-- User Information -->
+          <div class="bg-white rounded-xl shadow-sm border p-8 mb-6">
+            <!-- Main Info -->
+            <div class="flex items-center gap-6 mb-8 pb-6 border-b border-gray-200 flex-wrap">
+              <!-- Profile Photo -->
+             {% if user.profile_photo %}
+                <img src="{{ user.profile_photo.url }}" alt="Фото профиля" class="w-24 h-24 rounded-full object-cover border-4 border-gray-100">
+             {% else %}
+                <div class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center border-4 border-gray-100">
+                  <i class="ri-user-line text-3xl text-primary"></i>
+          </div>
+             {% endif %}
+             
+              <!-- Name and Info -->
+              <div class="flex-1">
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ user.get_full_name }}</h2>
+                <div class="flex flex-wrap gap-6 text-gray-600 text-sm mb-4">
+                  <span class="flex items-center gap-2">
+                    <i class="ri-map-pin-line text-primary"></i>
+                   {{ user.city.name|default:"Не указан" }}
+                 </span>
+                  <span class="flex items-center gap-2">
+                    <i class="ri-star-fill text-yellow-500"></i>
+                   {{ rating|floatformat:1 }} ({{ reviews.count }} отзывов)
+                 </span>
+                  <span class="flex items-center gap-2">
+                    <i class="ri-user-star-line text-primary"></i>
+                   {{ user.service_type.name|default:"Не указана" }}
+                 </span>
+                  </div>
+                <button onclick="openEditProfileModal()" class="bg-primary text-white px-5 py-2 rounded-lg hover:bg-primary-dark transition-colors">
+                  <i class="ri-edit-line mr-2"></i>Редактировать профиль
+                  </button>
+                </div>
+              </div>
+           
+            <!-- Statistics -->
+            <div class="mb-8">
+              <h3 class="text-lg font-semibold text-gray-900 mb-5">Статистика работы</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-gradient-to-br from-gray-50 to-white border border-gray-200 p-5 rounded-xl text-center">
+                  <i class="ri-calendar-check-line text-2xl text-primary mb-3 block"></i>
+                  <div class="text-2xl font-bold text-gray-900 mb-1">{{ completed_orders_count }}</div>
+                  <div class="text-gray-600 text-sm font-medium">Выполнено заказов</div>
+              </div>
+               
+                <div class="bg-gradient-to-br from-gray-50 to-white border border-gray-200 p-5 rounded-xl text-center">
+                  <i class="ri-notification-3-line text-2xl text-primary mb-3 block"></i>
+                  <div class="text-2xl font-bold text-gray-900 mb-1">{{ new_requests_count }}</div>
+                  <div class="text-gray-600 text-sm font-medium">Новых заявок</div>
+              </div>
+               
+                <div class="bg-gradient-to-br from-gray-50 to-white border border-gray-200 p-5 rounded-xl text-center">
+                  <i class="ri-time-line text-2xl text-primary mb-3 block"></i>
+                  <div class="text-2xl font-bold text-gray-900 mb-1">{{ active_bookings_count }}</div>
+                  <div class="text-gray-600 text-sm font-medium">Активных заказов</div>
+            </div>
+               
+                <div class="bg-gradient-to-br from-gray-50 to-white border border-gray-200 p-5 rounded-xl text-center">
+                  <i class="ri-star-fill text-2xl text-yellow-500 mb-3 block"></i>
+                  <div class="text-2xl font-bold text-gray-900 mb-1">{{ rating|floatformat:1 }}</div>
+                  <div class="text-gray-600 text-sm font-medium">Средний рейтинг</div>
+            </div>
+          </div>
+        </div>
+
+            <!-- Contact Information -->
+            <div class="bg-gray-50 p-6 rounded-xl">
+              <h4 class="text-lg font-semibold text-gray-900 mb-4">Контактная информация</h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white p-4 rounded-lg border border-gray-200">
+                  <div class="font-semibold text-gray-900 mb-1">Телефон</div>
+                  <div class="text-gray-600">{{ user.phone_number|default:"Не указан" }}</div>
+          </div>
+                <div class="bg-white p-4 rounded-lg border border-gray-200">
+                  <div class="font-semibold text-gray-900 mb-1">Email</div>
+                  <div class="text-gray-600">{{ user.email|default:"Не указан" }}</div>
+                  </div>
+                <div class="bg-white p-4 rounded-lg border border-gray-200">
+                  <div class="font-semibold text-gray-900 mb-1">Дата регистрации</div>
+                  <div class="text-gray-600">{{ user.date_joined|date:"d.m.Y" }}</div>
+                </div>
+                <div class="bg-white p-4 rounded-lg border border-gray-200">
+                  <div class="font-semibold text-gray-900 mb-1">Последний вход</div>
+                  <div class="text-gray-600">{{ user.last_login|date:"d.m.Y H:i"|default:"Не указан" }}</div>
+              </div>
+              </div>
+             
+             {% if user.bio or user.company_name %}
+              <div class="mt-5 pt-5 border-t border-gray-200">
+               {% if user.company_name %}
+                <div class="mb-3">
+                  <div class="font-semibold text-gray-900 mb-1">Компания</div>
+                  <div class="text-gray-600">{{ user.company_name }}</div>
+              </div>
+               {% endif %}
+               {% if user.bio %}
+               <div>
+                  <div class="font-semibold text-gray-900 mb-1">О себе</div>
+                  <div class="text-gray-600">{{ user.bio }}</div>
+          </div>
+               {% endif %}
+                  </div>
+                {% endif %}
+              </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-white">
+    <div class="container mx-auto px-4 py-3 md:py-12">
+      <!-- Mobile компактная версия -->
+      <div class="md:hidden text-center space-y-2">
+        <div class="flex justify-center space-x-4">
+          <a href="https://www.instagram.com/_miras_event_/" target="_blank" class="text-gray-300 hover:text-accent transition-colors">
+            <i class="ri-instagram-line text-lg"></i>
+          </a>
+          <a href="https://www.tiktok.com/@miras_abildin_?_t=ZM-8yOktSAtIhi&_r=1" target="_blank" class="text-gray-300 hover:text-accent transition-colors">
+            <i class="ri-tiktok-line text-lg"></i>
+          </a>
+          <a href="https://wa.me/77754184629" target="_blank" class="text-gray-300 hover:text-accent transition-colors">
+            <i class="ri-whatsapp-line text-lg"></i>
+          </a>  
+        </div>
+        <p class="text-xs text-gray-400">© 2024 Той со звездой</p>
+      </div>
+
+      <!-- Desktop полная версия -->
+      <div class="hidden md:block">
+        <div class="grid grid-cols-3 gap-8">
+          <div>
+            <h3 class="text-lg font-semibold mb-4">О нас</h3>
+            <p class="text-gray-300">Той со звездой - платформа для поиска профессиональных исполнителей для вашего мероприятия.</p>
+        </div>
+          <div>
+            <h3 class="text-lg font-semibold mb-4">Контакты</h3>
+            <p class="text-gray-300">Email: <a href="mailto:miras.abildin@bk.ru" class="text-accent hover:text-accent-dark">miras.abildin@bk.ru</a></p>
+            <p class="text-gray-300">Телефон: <a href="tel:+77754184629" class="text-accent hover:text-accent-dark">+7 (775)-418-46-29</a></p>
+        </div>
+          <div>
+            <h3 class="text-lg font-semibold mb-4">Соцсети</h3>
+            <div class="flex space-x-4">
+              <a href="https://www.instagram.com/_miras_event_/" target="_blank" class="text-gray-300 hover:text-accent transition-colors">
+                <i class="ri-instagram-line text-2xl"></i>
+              </a>
+              <a href="https://www.tiktok.com/@miras_abildin_?_t=ZM-8yOktSAtIhi&_r=1" target="_blank" class="text-gray-300 hover:text-accent transition-colors">
+                <i class="ri-tiktok-line text-2xl"></i>
+              </a>
+              <a href="https://wa.me/77754184629" target="_blank" class="text-gray-300 hover:text-accent transition-colors">
+                <i class="ri-whatsapp-line text-2xl"></i>
+            </a>  
+          </div>
+        </div>
+      </div>
+        <div class="border-t border-gray-800 mt-8 pt-8 text-center">
+          <p class="text-gray-400">© 2024 Той со звездой. Все права защищены.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    // Функция переключения табов
+    function showTab(tabName, element) {
+      // Скрываем все табы
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.add('hidden');
+      });
+      
+      // Показываем выбранный таб
+      document.getElementById(tabName + 'Tab').classList.remove('hidden');
+      
+      // Обновляем стили кнопок для desktop
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-primary', 'text-primary');
+        btn.classList.add('border-transparent', 'text-gray-500');
+      });
+      
+      if (element && element.classList.contains('tab-btn')) {
+        element.classList.remove('border-transparent', 'text-gray-500');
+        element.classList.add('border-primary', 'text-primary');
+      }
+      
+      // Обновляем стили для mobile navigation
+      document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+        btn.classList.remove('bg-blue-50', 'text-blue-600');
+        btn.classList.add('bg-gray-100', 'text-gray-600');
+      });
+      
+      if (element && element.classList.contains('mobile-nav-btn')) {
+        element.classList.remove('bg-gray-100', 'text-gray-600');
+        element.classList.add('bg-blue-50', 'text-blue-600');
+      }
+    }
+
+    // Функция для переключения мобильного меню
+    function toggleMobileMenu() {
+      console.log('toggleMobileMenu called');
+      const mobileMenu = document.getElementById('mobileMenu');
+      console.log('mobileMenu element:', mobileMenu);
+      
+      if (!mobileMenu) {
+        console.error('Mobile menu not found');
+        return;
+      }
+      
+      const menuPanel = mobileMenu.children[0];
+      console.log('menuPanel element:', menuPanel);
+      
+      if (!menuPanel) {
+        console.error('Menu panel not found');
+        return;
+      }
+      
+      const isHidden = mobileMenu.classList.contains('opacity-0') || mobileMenu.classList.contains('invisible');
+      console.log('Menu is hidden:', isHidden);
+      
+      if (isHidden) {
+        // Открываем меню
+        mobileMenu.classList.remove('opacity-0', 'invisible');
+        mobileMenu.classList.add('opacity-100', 'visible');
+        menuPanel.classList.remove('translate-x-full');
+        menuPanel.classList.add('translate-x-0');
+        console.log('Menu opened');
+      } else {
+        // Закрываем меню
+        mobileMenu.classList.remove('opacity-100', 'visible');
+        mobileMenu.classList.add('opacity-0', 'invisible');
+        menuPanel.classList.remove('translate-x-0');
+        menuPanel.classList.add('translate-x-full');
+        console.log('Menu closed');
+      }
+    }
+
+    // Функция для переключения user dropdown
+    function toggleUserDropdown() {
+      const dropdown = document.getElementById('userDropdown');
+      dropdown.classList.toggle('hidden');
+    }
+
+    // Закрытие dropdown при клике вне его
+    document.addEventListener('click', function(event) {
+      const dropdown = document.getElementById('userDropdown');
+      const button = dropdown?.previousElementSibling;
+      
+      if (!button?.contains(event.target) && !dropdown?.contains(event.target)) {
+        dropdown?.classList.add('hidden');
+      }
+    });
+
+    // Основные функции для работы с заказами
+    function viewOrderDetails(orderId) {
+      alert('Просмотр деталей заказа #' + orderId);
+    }
+
+    function respondToOrder(orderId) {
+      alert('Откликнуться на заказ #' + orderId);
+    }
+
+
+
+    function completeOrder(orderId) {
+      if (confirm('Вы уверены, что хотите завершить заказ?')) {
+        fetch(`/order/${orderId}/complete-api/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+          },
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            location.reload();
+      } else {
+            alert('Ошибка: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Произошла ошибка при завершении заказа');
+        });
+      }
+    }
+
+    function cancelOrder(orderId) {
+      if (confirm('Вы уверены, что хотите отменить этот заказ?')) {
+        fetch(`/order/${orderId}/cancel-api/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+          },
+        })
+          .then(response => response.json())
+          .then(data => {
+          if (data.success) {
+            location.reload();
+          } else {
+            alert('Ошибка: ' + data.message);
+          }
+          })
+          .catch(error => {
+          console.error('Error:', error);
+          alert('Произошла ошибка при отмене заказа');
+        });
+      }
+    }
+
+    function acceptBooking(orderId) {
+      if (confirm('Вы уверены, что хотите принять это бронирование?')) {
+        fetch(`/order/${orderId}/accept-booking-api/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+          },
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            location.reload();
+          } else {
+            alert('Ошибка: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Произошла ошибка при принятии бронирования');
+        });
+      }
+    }
+
+    function rejectBooking(orderId) {
+      if (confirm('Вы уверены, что хотите отклонить это бронирование?')) {
+        fetch(`/order/${orderId}/reject-booking-api/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+          },
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            location.reload();
+          } else {
+            alert('Ошибка: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Произошла ошибка при отклонении бронирования');
+        });
+      }
+    }
+
+    function performerCancelBooking(orderId) {
+      if (confirm('Вы уверены, что хотите отменить это бронирование?')) {
+        fetch(`/order/${orderId}/performer-cancel-booking-api/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+          },
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            location.reload();
+          } else {
+            alert('Ошибка: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Произошла ошибка при отмене бронирования');
+        });
+      }
+    }
+
+    function cancelResponse(responseId) {
+      console.log('cancelResponse called with responseId:', responseId);
+      if (confirm('Вы уверены, что хотите отменить этот отклик?')) {
+        console.log('User confirmed, sending request...');
+        
+        fetch(`/order/response/${responseId}/cancel/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+          }
+        })
+        .then(response => {
+          console.log('Response status:', response.status);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Response data:', data);
+          if (data.success) {
+            showNotification(data.message || 'Отклик успешно отменен!', 'success');
+            setTimeout(() => { location.reload(); }, 1000);
+          } else {
+            showNotification('Ошибка при отмене отклика: ' + (data.error || 'Неизвестная ошибка'), 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showNotification('Ошибка при отмене отклика: ' + error.message, 'error');
+        });
+      }
+    }
+
+    // Функции для работы с модальными окнами
+    function openModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.style.display = 'block';
+      }
+    }
+
+    // Функции для работы с тарифами
+    function addTariff() {
+      openTariffModal();
+    }
+
+    function editTariff(tariffId) {
+      openTariffModal(tariffId);
+    }
+
+    function openTariffModal(tariffId = null) {
+      // Здесь должна быть логика открытия модального окна тарифов
+      if (tariffId) {
+        alert('Редактирование тарифа #' + tariffId);
+      } else {
+        alert('Добавление нового тарифа');
+      }
+    }
+
+    function closeTariffModal() {
+      closeModal('tariffModal');
+    }
+
+    // Функции для работы с календарем
+    function openCalendarModal() {
+      alert('Открытие календаря для управления занятыми датами');
+    }
+
+    // Функции для работы с портфолио
+    let photoViewerOpen = false;
+
+    function openPhotoModal(imageUrl) {
+      // Проверяем, не открыто ли уже модальное окно
+      if (photoViewerOpen) {
+        return;
+      }
+
+      // Создаем модальное окно для просмотра фото
+      const modal = document.createElement('div');
+      modal.id = 'photo-modal';
+      modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+      modal.innerHTML = `
+        <div class="relative max-w-4xl max-h-full p-4">
+          <button class="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 z-10">
+            <i class="ri-close-line"></i>
+          </button>
+          <img src="${imageUrl}" alt="Портфолио" class="max-w-full max-h-full object-contain rounded-lg">
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+      photoViewerOpen = true;
+
+      // Функция закрытия
+      function closePhotoViewer() {
+        if (modal && modal.parentNode) {
+          modal.parentNode.removeChild(modal);
+        }
+        photoViewerOpen = false;
+        document.removeEventListener('keydown', handleEscape);
+      }
+
+      // Обработчики событий
+      const closeButton = modal.querySelector('button');
+      closeButton.onclick = closePhotoViewer;
+      
+      modal.onclick = function(event) {
+        if (event.target === modal) {
+          closePhotoViewer();
+        }
+      };
+
+      // Закрытие по клавише Escape
+      function handleEscape(event) {
+        if (event.key === 'Escape') {
+          closePhotoViewer();
+        }
+      }
+      
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    function openEditProfileModal() {
+      openModal('editProfileModal');
+    }
+
+    // Основные функции для работы с модальными окнами (совместимость со старыми стилями)
+    function openModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        // Для Tailwind модальных окон (используют hidden класс)
+        if (modal.classList.contains('fixed')) {
+          modal.classList.remove('hidden');
+        } else {
+          // Для обычных модальных окон (используют display: block)
+          modal.style.display = 'block';
+        }
+      }
+    }
+
+    function closeModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        // Для Tailwind модальных окон (используют hidden класс)
+        if (modal.classList.contains('fixed')) {
+          modal.classList.add('hidden');
+        } else {
+          // Для обычных модальных окон (используют display: none)
+          modal.style.display = 'none';
+        }
+      }
+      
+      // Останавливаем автообновление чата при закрытии модального окна
+      if (modalId === 'chatModal') {
+        stopChatAutoUpdate();
+        isChatActive = false;
+      }
+    }
+
+    // Функция просмотра фото
+    function openPhotoModal(imageUrl) {
+      const modal = document.getElementById('photo-modal');
+      const modalImg = modal.querySelector('.photo-viewer-img');
+      
+      modalImg.src = imageUrl;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closePhotoViewer() {
+      const modal = document.getElementById('photo-modal');
+      const modalImg = modal.querySelector('.photo-viewer-img');
+      
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      modalImg.src = '';
+    }
+
+    // Функции для работы с заказами (как в backup файле)
+    function respondToOrder(orderId) {
+      // Используем функцию из модального окна деталей заказа
+      if (typeof openOrderDetailModal === 'function') {
+        openOrderDetailModal(orderId, 'respond');
+      } else {
+        console.error('openOrderDetailModal function not found');
+        alert('Ошибка: функция отклика недоступна');
+      }
+    }
+
+    // Функция для обработки успешного отправления отклика (вызывается из модального окна)
+    window.onResponseSuccess = function() {
+      // Показываем уведомление
+      showNotification('Отклик успешно отправлен!', 'success');
+      
+      // Закрываем модальное окно
+      closeModal('orderDetailModal');
+      
+      // Перезагружаем страницу с переключением на таб "Заказы" через 1 секунду
+      setTimeout(() => {
+        // Сохраняем информацию о том, что нужно показать таб "orders"
+        localStorage.setItem('activeTab', 'orders');
+        location.reload();
+      }, 1000);
+    };
+
+
+
+    function viewOrderDetails(orderId) {
+      // Используем функцию из модального окна деталей заказа
+      if (typeof openOrderDetailModal === 'function') {
+        openOrderDetailModal(orderId, 'view');
+      } else {
+        console.error('openOrderDetailModal function not found');
+        alert('Ошибка: функция просмотра недоступна');
+      }
+    }
+
+    // Функция для получения CSRF токена
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    // Функция для показа уведомлений (как в backup файле)
+    function showNotification(message, type = 'info') {
+      // Создаем контейнер для уведомлений если его нет
+      let notificationContainer = document.getElementById('notification-container');
+      if (!notificationContainer) {
+        notificationContainer = document.createElement('div');
+        notificationContainer.id = 'notification-container';
+        notificationContainer.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          z-index: 10000;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        `;
+        document.body.appendChild(notificationContainer);
+      }
+
+      // Создаем уведомление
+      const notification = document.createElement('div');
+      const bgColor = type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#007bff';
+      notification.style.cssText = `
+        background: ${bgColor};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 6px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        max-width: 300px;
+        word-wrap: break-word;
+      `;
+      notification.textContent = message;
+
+      // Добавляем в контейнер
+      notificationContainer.appendChild(notification);
+
+      // Анимация появления
+      setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+      }, 10);
+
+      // Автоматическое удаление через 3 секунды
+      setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+          }
+        }, 300);
+      }, 3000);
+    }
+
+    // Функции для работы с заказами (из backup файла)
+    function completeOrder(orderId) {
+      if (confirm('Вы уверены, что хотите завершить этот заказ?')) {
+        fetch(`/order/${orderId}/complete-api/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            showNotification(data.message || 'Заказ успешно завершен', 'success');
+            setTimeout(() => { location.reload(); }, 1000);
+          } else {
+            showNotification('Ошибка при завершении заказа: ' + (data.error || 'Неизвестная ошибка'), 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showNotification('Ошибка при завершении заказа: ' + error.message, 'error');
+        });
+      }
+    }
+
+    function acceptBooking(orderId) {
+      if (confirm('Вы уверены, что хотите принять это бронирование?')) {
+        fetch(`/order/${orderId}/accept-booking-api/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            showNotification(data.message || 'Бронирование успешно принято', 'success');
+            setTimeout(() => { location.reload(); }, 1000);
+          } else {
+            showNotification('Ошибка при принятии бронирования: ' + (data.error || 'Неизвестная ошибка'), 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showNotification('Ошибка при принятии бронирования: ' + error.message, 'error');
+        });
+      }
+    }
+
+    function rejectBooking(orderId) {
+      if (confirm('Вы уверены, что хотите отклонить это бронирование?')) {
+        fetch(`/order/${orderId}/reject-booking-api/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            showNotification(data.message || 'Бронирование отклонено', 'success');
+            setTimeout(() => { location.reload(); }, 1000);
+          } else {
+            showNotification('Ошибка при отклонении бронирования: ' + (data.error || 'Неизвестная ошибка'), 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showNotification('Ошибка при отклонении бронирования: ' + error.message, 'error');
+        });
+      }
+    }
+
+    function cancelOrder(orderId) {
+      if (confirm('Вы уверены, что хотите отменить этот заказ?')) {
+        fetch(`/order/${orderId}/cancel-api/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            showNotification(data.message || 'Заказ успешно отменен', 'success');
+            setTimeout(() => { location.reload(); }, 1000);
+          } else {
+            showNotification('Ошибка при отмене заказа: ' + (data.error || 'Неизвестная ошибка'), 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showNotification('Ошибка при отмене заказа: ' + error.message, 'error');
+        });
+      }
+    }
+
+    function cancelResponse(responseId) {
+      console.log('cancelResponse called with responseId:', responseId);
+      if (confirm('Вы уверены, что хотите отменить этот отклик?')) {
+        console.log('User confirmed, sending request...');
+        
+        fetch(`/order/response/${responseId}/cancel/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+          }
+        })
+        .then(response => {
+          console.log('Response status:', response.status);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Response data:', data);
+          if (data.success) {
+            showNotification(data.message || 'Отклик успешно отменен!', 'success');
+            setTimeout(() => { location.reload(); }, 1000);
+          } else {
+            showNotification('Ошибка при отмене отклика: ' + (data.error || 'Неизвестная ошибка'), 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showNotification('Ошибка при отмене отклика: ' + error.message, 'error');
+        });
+      }
+    }
+
+
+
+    // Обработчики событий для кнопок заказов
+    document.addEventListener('DOMContentLoaded', function() {
+      // Проверяем, есть ли сохраненный активный таб
+      const savedTab = localStorage.getItem('activeTab');
+      if (savedTab) {
+        // Очищаем сохраненный таб
+        localStorage.removeItem('activeTab');
+        // Находим соответствующую кнопку таба и показываем его
+        const tabButton = document.querySelector(`[onclick*="${savedTab}"]`);
+        if (tabButton) {
+          showTab(savedTab, tabButton);
+        } else {
+          // Если не найдена кнопка, показываем первый таб
+          showTab('orders', document.querySelector('.tab-btn'));
+        }
+      } else {
+        // Показываем первый таб по умолчанию
+        showTab('orders', document.querySelector('.tab-btn'));
+      }
+
+      // Скрываем все модальные окна при загрузке страницы
+      document.querySelectorAll('.modal').forEach(modal => {
+        modal.style.display = 'none';
+      });
+
+      // Переопределяем функцию submitResponse из модального окна для правильной обработки
+      setTimeout(() => {
+        if (typeof window.submitResponse === 'function') {
+          const originalSubmitResponse = window.submitResponse;
+          window.submitResponse = function(event, orderId) {
+            event.preventDefault();
+            
+            const price = document.getElementById('responsePrice').value;
+            const message = document.getElementById('responseMessage').value;
+            
+            // Показываем индикатор загрузки
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> Отправляю...';
+            submitBtn.disabled = true;
+            
+            fetch(`/order/${orderId}/respond/`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+              },
+              body: JSON.stringify({
+                price: price,
+                message: message
+              })
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                // Вызываем нашу функцию обработки успеха
+                window.onResponseSuccess();
+              } else {
+                showNotification('Ошибка: ' + (data.error || 'Неизвестная ошибка'), 'error');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              showNotification('Ошибка при отправке отклика', 'error');
+              submitBtn.innerHTML = originalText;
+              submitBtn.disabled = false;
+            });
+          };
+        }
+      }, 1000);
+
+
+
+      // Кнопки действий с заказами (как в backup файле)
+      document.querySelectorAll('.order-action-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          const orderId = this.getAttribute('data-order-id');
+          const action = this.getAttribute('data-action');
+          
+          if (typeof openOrderDetailModal === 'function') {
+            openOrderDetailModal(orderId, action);
+          } else {
+            console.error('openOrderDetailModal function not found');
+            // Fallback к нашим функциям
+            switch(action) {
+              case 'respond':
+                respondToOrder(orderId);
+                break;
+              case 'view':
+                viewOrderDetails(orderId);
+                break;
+              default:
+                console.log('Unknown action:', action);
+            }
+          }
+        });
+      });
+
+      // Кнопки завершения заказов
+      document.querySelectorAll('.complete-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          const orderId = this.getAttribute('data-order-id');
+          if (typeof completeOrder === 'function') {
+            completeOrder(orderId);
+          }
+        });
+      });
+
+      // Кнопки принятия бронирований
+      document.querySelectorAll('.accept-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          const orderId = this.getAttribute('data-order-id');
+          if (typeof acceptBooking === 'function') {
+            acceptBooking(orderId);
+          }
+        });
+      });
+
+      // Кнопки отклонения бронирований
+      document.querySelectorAll('.reject-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          const orderId = this.getAttribute('data-order-id');
+          if (typeof rejectBooking === 'function') {
+            rejectBooking(orderId);
+          }
+        });
+      });
+
+      // Кнопки отмены заказов
+      document.querySelectorAll('.cancel-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          const orderId = this.getAttribute('data-order-id');
+          if (typeof cancelOrder === 'function') {
+            cancelOrder(orderId);
+          }
+        });
+      });
+
+      // Кнопки чата
+      document.querySelectorAll('.chat-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          const orderId = this.getAttribute('data-order-id');
+          openChat(orderId);
+        });
+      });
+
+      // Кнопки отмены откликов
+      document.querySelectorAll('.cancel-response-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          const responseId = this.getAttribute('data-response-id');
+            cancelResponse(responseId);
+        });
+      });
+
+      // Закрытие модальных окон по Escape
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          // Найти открытое модальное окно
+          const openModal = document.querySelector('.modal[style*="block"], .fixed.inset-0:not(.hidden)');
+          if (openModal) {
+            if (openModal.id === 'photo-modal') {
+        closePhotoViewer();
+            } else {
+              closeModal(openModal.id);
+            }
+          }
+        }
+      });
+
+      // Закрытие модальных окон при клике вне их (как в backup файле)
+      window.onclick = function(event) {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+          if (event.target === modal) {
+            if (modal.classList.contains('fixed')) {
+              modal.classList.add('hidden');
+            } else {
+      modal.style.display = 'none';
+            }
+            // Если это модальное окно тарифа, сбрасываем форму
+            if (modal.id === 'tariffModal') {
+              const form = document.getElementById('tariffForm');
+              if (form) form.reset();
+              const tariffId = document.getElementById('tariffId');
+              if (tariffId) tariffId.value = '';
+      }
+    }
+  });
+      };
+    });
+  </script>
+
+  <!-- Модальные окна -->
+  
+  <!-- Модальное окно добавления фото в портфолио -->
+  {% include 'modals/add_portfolio_modal.html' %}
+
+  <!-- Модальное окно редактирования профиля -->
+  {% include 'modals/edit_profile_modal.html' %}
+
+  <!-- Модальное окно тарифа -->
+  {% include 'modals/tariff_modal.html' %}
+
+  <!-- Модальное окно календаря -->
+  {% include 'modals/calendar_modal.html' %}
+
+  <!-- Модальное окно чата -->
+  {% include 'modals/chat_modal.html' %}
+  
+  <!-- Модальное окно деталей заказа -->
+  {% include 'modals/order_detail_modal.html' %}
+  
+  <!-- Модальное окно быстрого профиля -->
+  {% include 'modals/quick_profile_modal.html' %}
+  
+  <!-- Модальное окно бронирования -->
+  {% include 'modals/booking_modal.html' %}
+  
+  <!-- Модальное окно деталей заявки -->
+  {% include 'modals/request_details_modal.html' %}
+
+
+
+  <!-- Модальное окно просмотра фото -->
+  <div id="photo-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50">
+    <div class="relative max-w-4xl max-h-[90vh] mx-4">
+      <button onclick="closePhotoViewer()" class="absolute top-4 right-4 text-white text-3xl hover:text-gray-300 z-10">
+        &times;
+      </button>
+      <img src="" alt="Просмотр фото" class="max-w-full max-h-full object-contain photo-viewer-img">
+    </div>
+  </div>
+
+  <!-- CSRF токен для AJAX запросов -->
+  {% csrf_token %}
+  
+  <script>
+    // Глобальные переменные
+    let currentTab = 'dashboard';
+    let isPhotoViewerOpen = false;
+
+    // Функция для получения CSRF токена
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    // Функция уведомлений
+    function showNotification(message, type = 'info') {
+      // Создаем элемент уведомления
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+      `;
+      
+      if (type === 'success') {
+        notification.style.background = '#28a745';
+      } else if (type === 'error') {
+        notification.style.background = '#dc3545';
+      } else {
+        notification.style.background = '#17a2b8';
+      }
+      
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      // Удаляем через 3 секунды
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 300);
+      }, 3000);
+    }
+  </script>
+
+</body>
+</html> 

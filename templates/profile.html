@@ -1,0 +1,355 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Профиль — Той со звездой{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="container mx-auto px-4">
+        <!-- Profile Header -->
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+            <div class="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
+                <!-- Profile Photo -->
+                <div class="relative">
+                    <div class="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden bg-gray-200">
+                        {% if profile_user.profile_photo %}
+                            <img src="{{ profile_user.profile_photo.url }}" alt="{{ profile_user.get_full_name }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center">
+                                <i class="ri-user-line text-4xl text-gray-400"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% if profile_user.rating %}
+                    <div class="absolute -bottom-2 -right-2 bg-yellow-400 text-white rounded-full px-2 py-1 flex items-center">
+                        <i class="ri-star-fill text-xs mr-1"></i>
+                        <span class="text-xs font-semibold">{{ profile_user.rating }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Profile Info -->
+                <div class="flex-1">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                        {{ profile_user.get_full_name }}
+                    </h1>
+                    <p class="text-gray-600 mb-3">
+                        {% if profile_user.service_type %}
+                            {{ profile_user.service_type.name }}
+                        {% else %}
+                            Исполнитель
+                        {% endif %}
+                    </p>
+                    
+                    <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                        <div class="flex items-center">
+                            <i class="ri-map-pin-line mr-1 text-blue-500"></i>
+                            <span>
+                                {% if profile_user.city %}
+                                    {{ profile_user.city.name|default:profile_user.city }}
+                                {% else %}
+                                    Не указан
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        {% if profile_user.rating %}
+                        <div class="flex items-center">
+                            <div class="flex text-yellow-400 mr-1">
+                                {% for i in "12345"|make_list %}
+                                    <i class="ri-star-fill {% if forloop.counter <= profile_user.rating %}text-yellow-400{% else %}text-gray-300{% endif %} text-sm"></i>
+                                {% endfor %}
+                            </div>
+                            <span>
+                                ({{ profile_user.reviews_received.count|default:0 }} отзывов)
+                            </span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if profile_user.completed_orders_count %}
+                        <div class="flex items-center">
+                            <i class="ri-calendar-check-line mr-1 text-green-500"></i>
+                            <span>{{ profile_user.completed_orders_count }} мероприятий</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                    {% if user.is_authenticated and user.user_type == 'customer' %}
+                        <a href="{% url 'main:create_order_request' %}?performer={{ profile_user.id }}" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center">
+                            <i class="ri-add-line mr-2"></i>
+                            Забронировать
+                        </a>
+                    {% elif not user.is_authenticated %}
+                        <a href="{% url 'main:auth_page' %}" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center">
+                            <i class="ri-add-line mr-2"></i>
+                            Забронировать
+                        </a>
+                    {% endif %}
+                    
+                    {% if user.is_authenticated and user.id == profile_user.id %}
+                        <a href="{% url 'main:profile_settings' %}" class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors flex items-center justify-center">
+                            <i class="ri-settings-3-line mr-2"></i>
+                            Настройки
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- About -->
+                {% if profile_user.bio %}
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="ri-user-line mr-2 text-blue-500"></i>
+                        О себе
+                    </h2>
+                    <p class="text-gray-700 leading-relaxed">{{ profile_user.bio }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Portfolio -->
+                {% if profile_user.portfolio.all %}
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="ri-image-line mr-2 text-blue-500"></i>
+                        Портфолио
+                        <span class="ml-2 text-sm text-gray-500">({{ profile_user.portfolio.all|length }} фото)</span>
+                    </h2>
+                    <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3" id="portfolioGrid">
+                        {% for photo in profile_user.portfolio.all %}
+                        <div class="portfolio-item aspect-square rounded-lg overflow-hidden bg-gray-200 cursor-pointer group relative {% if forloop.counter > 15 %}hidden{% endif %}" onclick="openPortfolioModal({{ forloop.counter0 }})">
+                            <img src="{{ photo.image.url }}" alt="Портфолио" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
+                                <i class="ri-zoom-in-line text-white text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></i>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if profile_user.portfolio.all|length > 15 %}
+                    <div class="text-center mt-6">
+                        <button id="loadMoreBtn" onclick="loadMorePhotos()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center mx-auto">
+                            <i class="ri-add-line mr-2"></i>
+                            Показать еще
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Reviews -->
+                {% if profile_user.reviews_received.all %}
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="ri-star-line mr-2 text-blue-500"></i>
+                        Отзывы ({{ profile_user.reviews_received.all|length }})
+                    </h2>
+                    <div class="space-y-4">
+                        {% for review in profile_user.reviews_received.all %}
+                        <div class="border-b border-gray-200 pb-4 last:border-b-0">
+                            <div class="flex items-start justify-between mb-2">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-3">
+                                        {% if review.from_user.profile_photo %}
+                                            <img src="{{ review.from_user.profile_photo.url }}" alt="{{ review.from_user.get_full_name }}" class="w-8 h-8 rounded-full object-cover">
+                                        {% else %}
+                                            <i class="ri-user-line text-gray-400"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-gray-900">{{ review.from_user.get_full_name }}</p>
+                                        <div class="flex text-yellow-400 text-sm">
+                                            {% for i in "12345"|make_list %}
+                                                <i class="ri-star-fill {% if forloop.counter <= review.rating %}text-yellow-400{% else %}text-gray-300{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="text-sm text-gray-500">{{ review.created_at|date:"d.m.Y" }}</span>
+                            </div>
+                            {% if review.comment %}
+                            <p class="text-gray-700">{{ review.comment }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Right Column -->
+            <div class="space-y-6">
+                <!-- Contact Info -->
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="ri-map-pin-line mr-2 text-blue-500"></i>
+                        Местоположение
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center text-gray-700">
+                            <i class="ri-map-pin-line mr-3 text-gray-400"></i>
+                            <span>
+                                {% if profile_user.city %}
+                                    {{ profile_user.city.name|default:profile_user.city }}
+                                {% else %}
+                                    Не указан
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Services -->
+                {% if tariffs %}
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="ri-price-tag-3-line mr-2 text-blue-500"></i>
+                        Услуги и цены
+                    </h3>
+                    <div class="space-y-3">
+                        {% for tariff in tariffs %}
+                        <div class="border border-gray-200 rounded-lg p-3">
+                            <h4 class="font-semibold text-gray-900 mb-1">{{ tariff.name }}</h4>
+                            <p class="text-sm text-gray-600 mb-2">{{ tariff.description }}</p>
+                            <p class="text-lg font-bold text-blue-600">{{ tariff.price }} ₸</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Stats -->
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="ri-bar-chart-line mr-2 text-blue-500"></i>
+                        Статистика
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-600">{{ profile_user.completed_orders_count|default:0 }}</div>
+                            <div class="text-sm text-gray-500">Мероприятий</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600">{{ profile_user.rating|default:"0.0" }}</div>
+                            <div class="text-sm text-gray-500">Рейтинг</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Portfolio Modal -->
+{% if profile_user.portfolio.all %}
+<div id="portfolioModal" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden flex items-center justify-center">
+    <div class="relative w-full h-full flex items-center justify-center p-4">
+        <!-- Close Button -->
+        <button onclick="closePortfolioModal()" class="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10">
+            <i class="ri-close-line text-3xl"></i>
+        </button>
+        
+        <!-- Navigation Buttons -->
+        <button onclick="previousPhoto()" class="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors z-10 bg-black bg-opacity-50 rounded-full p-3">
+            <i class="ri-arrow-left-s-line text-2xl"></i>
+        </button>
+        
+        <button onclick="nextPhoto()" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors z-10 bg-black bg-opacity-50 rounded-full p-3">
+            <i class="ri-arrow-right-s-line text-2xl"></i>
+        </button>
+        
+        <!-- Photo Container -->
+        <div class="max-w-4xl max-h-full flex items-center justify-center">
+            <img id="modalPhoto" src="" alt="Портфолио" class="max-w-full max-h-full object-contain">
+        </div>
+        
+        <!-- Photo Counter -->
+        <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white bg-black bg-opacity-50 px-4 py-2 rounded-full">
+            <span id="photoCounter">1</span> / <span id="totalPhotos">{{ profile_user.portfolio.all|length }}</span>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentPhotoIndex = 0;
+const photos = [];
+let visiblePhotos = 15;
+
+// Заполняем массив фотографий
+{% for photo in profile_user.portfolio.all %}
+    photos.push("{{ photo.image.url }}");
+{% endfor %}
+
+function loadMorePhotos() {
+    const portfolioItems = document.querySelectorAll('.portfolio-item');
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    
+    // Показываем следующие 15 фотографий
+    for (let i = visiblePhotos; i < Math.min(visiblePhotos + 15, portfolioItems.length); i++) {
+        portfolioItems[i].classList.remove('hidden');
+    }
+    
+    visiblePhotos += 15;
+    
+    // Скрываем кнопку если все фотографии показаны
+    if (visiblePhotos >= portfolioItems.length) {
+        loadMoreBtn.style.display = 'none';
+    }
+}
+
+function openPortfolioModal(index) {
+    currentPhotoIndex = index;
+    updateModalPhoto();
+    document.getElementById('portfolioModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closePortfolioModal() {
+    document.getElementById('portfolioModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+function updateModalPhoto() {
+    document.getElementById('modalPhoto').src = photos[currentPhotoIndex];
+    document.getElementById('photoCounter').textContent = currentPhotoIndex + 1;
+}
+
+function nextPhoto() {
+    currentPhotoIndex = (currentPhotoIndex + 1) % photos.length;
+    updateModalPhoto();
+}
+
+function previousPhoto() {
+    currentPhotoIndex = (currentPhotoIndex - 1 + photos.length) % photos.length;
+    updateModalPhoto();
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (document.getElementById('portfolioModal').classList.contains('hidden')) return;
+    
+    if (e.key === 'Escape') {
+        closePortfolioModal();
+    } else if (e.key === 'ArrowRight') {
+        nextPhoto();
+    } else if (e.key === 'ArrowLeft') {
+        previousPhoto();
+    }
+});
+
+// Close modal on background click
+document.getElementById('portfolioModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closePortfolioModal();
+    }
+});
+</script>
+{% endif %}
+{% endblock %} 

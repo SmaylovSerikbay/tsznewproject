@@ -1,0 +1,373 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Каталог исполнителей — Той со звездой{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="container mx-auto px-4">
+        <!-- Mobile Filter Button -->
+        <div class="md:hidden mb-4 sticky top-4 z-40">
+            <button id="mobileFilterBtn" onclick="toggleMobileFilters()" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors shadow-lg">
+                <span class="font-medium text-gray-700">Фильтры</span>
+                <i class="ri-filter-3-line text-gray-500" id="filterIcon"></i>
+            </button>
+            </div>
+
+        <!-- Filters -->
+        <div id="filtersContainer" class="bg-white rounded-xl shadow-sm p-6 mb-8 md:block hidden">
+            <form method="get" class="space-y-4">
+                <!-- All filters in one row -->
+                <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
+                    <div>
+                        <label for="search" class="block text-xs font-medium text-gray-700 mb-1">Поиск</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                <i class="ri-search-line text-gray-400 text-sm"></i>
+              </div>
+                            <input 
+                                type="text" 
+                                id="search" 
+                                name="search" 
+                                value="{{ request.GET.search }}"
+                                class="block w-full pl-7 pr-2 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Имя..."
+                            >
+    </div>
+  </div>
+
+                    <div>
+                        <label for="category" class="block text-xs font-medium text-gray-700 mb-1">Категория</label>
+                        <select 
+                            id="category" 
+                            name="category" 
+                            class="block w-full px-2 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                            <option value="">Все</option>
+                            {% for category in categories %}
+                                <option value="{{ category.code }}" {% if request.GET.category == category.code %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                {% endfor %}
+          </select>
+                    </div>
+                    
+                    <div>
+                        <label for="city" class="block text-xs font-medium text-gray-700 mb-1">Город</label>
+                        <select 
+                            id="city" 
+                            name="city" 
+                            class="block w-full px-2 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                            <option value="">Все</option>
+            {% for city in cities %}
+                                <option value="{{ city.name }}" {% if request.GET.city == city.name %}selected{% endif %}>
+                                    {{ city.name }}
+                                </option>
+            {% endfor %}
+          </select>
+                    </div>
+
+                    <div>
+                        <label for="date" class="block text-xs font-medium text-gray-700 mb-1">Дата</label>
+                        <input 
+                            type="date" 
+                            id="date" 
+                            name="date" 
+                            value="{{ request.GET.date }}"
+                            class="block w-full px-2 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            min="{{ today_date|date:'Y-m-d' }}"
+                        >
+          </div>
+
+                    <div>
+                        <label for="rating" class="block text-xs font-medium text-gray-700 mb-1">Рейтинг</label>
+                        <select 
+                            id="rating" 
+                            name="rating" 
+                            class="block w-full px-2 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                            <option value="">Любой</option>
+                            <option value="4.5" {% if request.GET.rating == '4.5' %}selected{% endif %}>4.5+</option>
+                            <option value="4.0" {% if request.GET.rating == '4.0' %}selected{% endif %}>4.0+</option>
+                            <option value="3.5" {% if request.GET.rating == '3.5' %}selected{% endif %}>3.5+</option>
+          </select>
+      </div>
+
+                    <div class="flex gap-2">
+                        <button type="submit" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors flex items-center justify-center">
+                            <i class="ri-search-line mr-1"></i>
+                            <span class="hidden sm:inline">Найти</span>
+        </button>
+                        <a href="{% url 'main:catalog' %}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-300 transition-colors flex items-center justify-center">
+                            <i class="ri-refresh-line mr-1"></i>
+                            <span class="hidden sm:inline">Сброс</span>
+                        </a>
+      </div>
+            </div>
+
+                <!-- Price range (optional, can be hidden) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="priceFilters" style="display: none;">
+                    <div>
+                        <label for="price_min" class="block text-xs font-medium text-gray-700 mb-1">Цена от (₸)</label>
+                        <input 
+                            type="number" 
+                            id="price_min" 
+                            name="price_min" 
+                            value="{{ request.GET.price_min }}"
+                            class="block w-full px-2 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="0"
+                            min="0"
+                        >
+            </div>
+
+                    <div>
+                        <label for="price_max" class="block text-xs font-medium text-gray-700 mb-1">Цена до (₸)</label>
+                        <input 
+                            type="number" 
+                            id="price_max" 
+                            name="price_max" 
+                            value="{{ request.GET.price_max }}"
+                            class="block w-full px-2 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="100000"
+                            min="0"
+                        >
+              </div>
+            </div>
+            </form>
+            </div>
+
+        <!-- Results Info -->
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
+            <div class="text-center sm:text-left">
+                <p class="text-gray-600 text-sm">
+                    <span class="hidden sm:inline">Найдено</span>
+                    <span class="sm:hidden">Результаты:</span>
+                    <span class="font-semibold text-gray-900">{{ performers|length }}</span>
+                    <span class="hidden sm:inline">исполнителей</span>
+                    <span class="sm:hidden">исполнитель{{ performers|length|pluralize:"ь,я,ей" }}</span>
+                    {% if request.GET.date %}
+                        <span class="text-blue-600 block sm:inline sm:ml-1">• Свободны на {{ request.GET.date }}</span>
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- Sort -->
+            <div class="flex items-center justify-center sm:justify-end space-x-2">
+                <label for="sort" class="text-sm font-medium text-gray-700">Сортировка:</label>
+                <select 
+                    id="sort" 
+                    name="sort" 
+                    class="px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    onchange="this.form.submit()"
+                >
+                    <option value="rating" {% if request.GET.sort == 'rating' %}selected{% endif %}>По рейтингу</option>
+                    <option value="name" {% if request.GET.sort == 'name' %}selected{% endif %}>По имени</option>
+                    <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>Сначала новые</option>
+                    <option value="price_low" {% if request.GET.sort == 'price_low' %}selected{% endif %}>По цене (дешевле)</option>
+                    <option value="price_high" {% if request.GET.sort == 'price_high' %}selected{% endif %}>По цене (дороже)</option>
+              </select>
+        </div>
+      </div>
+
+      <!-- Performers Grid -->
+        {% if performers %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for performer in performers %}
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
+                    <div class="h-64 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative">
+          {% if performer.profile_photo %}
+                            <img src="{{ performer.profile_photo.url }}" alt="{{ performer.get_full_name }}" class="w-full h-full object-cover object-center">
+          {% else %}
+                            <div class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+                                <div class="w-20 h-20 bg-blue-200 rounded-full flex items-center justify-center mb-3">
+                                    <i class="ri-user-line text-3xl text-blue-600"></i>
+                                </div>
+                                <p class="text-blue-600 font-medium text-sm">Фото не загружено</p>
+                            </div>
+          {% endif %}
+                        
+                        <!-- Category Badge -->
+                        <div class="absolute top-3 right-3">
+                            <div class="bg-white bg-opacity-90 rounded-full px-3 py-1">
+                                <span class="text-xs font-semibold text-gray-700">{{ performer.service_type.name|default:"Исполнитель" }}</span>
+            </div>
+                        </div>
+                        
+                        <!-- Rating Badge -->
+                        {% if performer.rating %}
+                        <div class="absolute top-3 left-3">
+                            <div class="bg-yellow-400 text-white rounded-full px-2 py-1 flex items-center">
+                                <i class="ri-star-fill text-xs mr-1"></i>
+                                <span class="text-xs font-semibold">{{ performer.rating }}</span>
+                            </div>
+                        </div>
+                {% endif %}
+
+                        <!-- Available Badge -->
+                        {% if request.GET.date %}
+                        <div class="absolute bottom-3 left-3">
+                            <div class="bg-green-500 text-white rounded-full px-2 py-1 flex items-center">
+                                <i class="ri-calendar-check-line text-xs mr-1"></i>
+                                <span class="text-xs font-semibold">Свободен</span>
+            </div>
+                        </div>
+                {% endif %}
+              </div>
+                    
+                    <div class="p-6">
+                        <h3 class="font-bold text-xl text-gray-900 mb-2 line-clamp-1">{{ performer.get_full_name }}</h3>
+                        <p class="text-gray-500 mb-3 text-sm">{{ performer.service_type.name|default:"Исполнитель" }}</p>
+                        
+                        <div class="flex items-center text-gray-500 mb-4">
+                            <i class="ri-map-pin-line mr-2 text-blue-500"></i>
+                            <span class="text-sm">{{ performer.city }}</span>
+              </div>
+                        
+                        {% if performer.rating %}
+                        <div class="flex items-center mb-4">
+                            <div class="flex text-yellow-400 mr-2">
+                                {% for i in "12345"|make_list %}
+                                    <i class="ri-star-fill {% if forloop.counter <= performer.rating %}text-yellow-400{% else %}text-gray-300{% endif %}"></i>
+                                {% endfor %}
+            </div>
+                            <span class="text-sm text-gray-500">({{ performer.reviews_count|default:0 }})</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if performer.bio %}
+                        <p class="text-gray-600 text-sm mb-4 line-clamp-2">{{ performer.bio|truncatechars:100 }}</p>
+                        {% endif %}
+                        
+                        <div class="flex space-x-2">
+                            <a href="{% url 'main:view_profile' performer.id %}" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-center py-2 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-105">
+                                <i class="ri-eye-line mr-1"></i>
+                                Профиль
+                            </a>
+              {% if user.is_authenticated and user.user_type == 'customer' %}
+                            <button onclick="openBookingModal({{ performer.id }})" class="bg-green-600 text-white px-3 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                                <i class="ri-calendar-check-line"></i>
+                            </button>
+              {% elif not user.is_authenticated %}
+                            <a href="{% url 'main:auth_page' %}" class="bg-green-600 text-white px-3 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                                <i class="ri-calendar-check-line"></i>
+                            </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+        {% else %}
+            <!-- No Results -->
+            <div class="text-center py-12">
+                <div class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="ri-search-line text-3xl text-gray-400"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Исполнители не найдены</h3>
+                <p class="text-gray-600 mb-6">
+                    {% if request.GET.date %}
+                        На выбранную дату свободных исполнителей не найдено
+                    {% else %}
+                        Попробуйте изменить параметры поиска
+                    {% endif %}
+                </p>
+                <a href="{% url 'main:catalog' %}" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                    Сбросить фильтры
+                </a>
+            </div>
+        {% endif %}
+
+      <!-- Pagination -->
+        {% if performers.has_other_pages %}
+        <div class="flex justify-center mt-12">
+            <nav class="flex items-center space-x-2">
+                {% if performers.has_previous %}
+                    <a href="?page={{ performers.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                        <i class="ri-arrow-left-line"></i>
+          </a>
+        {% endif %}
+        
+                {% for num in performers.paginator.page_range %}
+                    {% if performers.number == num %}
+                        <span class="px-3 py-2 bg-blue-600 text-white rounded-lg">{{ num }}</span>
+                    {% elif num > performers.number|add:'-3' and num < performers.number|add:'3' %}
+                        <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                            {{ num }}
+                        </a>
+          {% endif %}
+        {% endfor %}
+        
+                {% if performers.has_next %}
+                    <a href="?page={{ performers.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                        <i class="ri-arrow-right-line"></i>
+          </a>
+        {% endif %}
+            </nav>
+      </div>
+      {% endif %}
+    </div>
+</div>
+
+<style>
+:root {
+  --primary-color: #6366f1;
+  --primary-hover: #4f46e5;
+  --primary: #6366f1;
+  --primary-dark: #4f46e5;
+  --gray-100: #f3f4f6;
+  --gray-300: #d1d5db;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-900: #111827;
+}
+
+.line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+/* Анимация спиннера */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+</style>
+
+<script>
+    function toggleMobileFilters() {
+    const container = document.getElementById('filtersContainer');
+    const icon = document.getElementById('filterIcon');
+    
+    if (container.classList.contains('hidden')) {
+        container.classList.remove('hidden');
+        icon.classList.remove('ri-filter-3-line');
+        icon.classList.add('ri-filter-off-line');
+      } else {
+        container.classList.add('hidden');
+        icon.classList.remove('ri-filter-off-line');
+        icon.classList.add('ri-filter-3-line');
+    }
+}
+
+// Функции для модального окна бронирования определены в booking_modal.html
+  </script>
+
+<!-- Модальное окно бронирования -->
+{% include 'modals/booking_modal.html' %}
+
+{% endblock %} 

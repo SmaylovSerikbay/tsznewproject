@@ -1,0 +1,83 @@
+<!-- Add/Edit Tariff Modal -->
+<div id="tariffModal" class="modal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('tariffModal')">
+      <i class="ri-close-line"></i>
+    </button>
+    <div class="modal-header">
+      <h2 class="modal-title" id="tariffModalTitle">Добавить тариф</h2>
+    </div>
+    <form id="tariffForm" action="{% url 'main:manage_tariff' %}" method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="tariff_id" id="tariffId">
+      <div class="form-group">
+        <label class="form-label">Название услуги</label>
+        <input type="text" class="form-input" name="name" id="tariffName" required>
+      </div>
+      <div class="form-group" style="margin-top: 20px;">
+        <label class="form-label">Стоимость (₸)</label>
+        <input type="number" class="form-input" name="price" id="tariffPrice" min="0" required>
+      </div>
+      <div class="form-group" style="margin-top: 20px;">
+        <label class="form-label">Описание</label>
+        <textarea class="form-input" name="description" id="tariffDescription" rows="4"></textarea>
+      </div>
+      <div class="form-footer" style="margin-top: 24px;">
+        <button type="submit" class="btn accent">Сохранить</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openTariffModal(tariffId = null) {
+  const modal = document.getElementById('tariffModal');
+  const title = document.getElementById('tariffModalTitle');
+  const form = document.getElementById('tariffForm');
+  const idInput = document.getElementById('tariffId');
+  const nameInput = document.getElementById('tariffName');
+  const priceInput = document.getElementById('tariffPrice');
+  const descriptionInput = document.getElementById('tariffDescription');
+
+  // Reset form
+  form.reset();
+  idInput.value = '';
+
+  if (tariffId) {
+    // Edit mode
+    title.textContent = 'Изменить тариф';
+    fetch(`/tariff/${tariffId}/edit/`)
+      .then(response => response.json())
+      .then(data => {
+        idInput.value = data.id;
+        nameInput.value = data.name;
+        priceInput.value = data.price;
+        descriptionInput.value = data.description || '';
+      })
+      .catch(error => {
+        console.error('Error fetching tariff data:', error);
+        alert('Произошла ошибка при загрузке данных тарифа');
+        closeModal('tariffModal');
+      });
+  } else {
+    // Add mode
+    title.textContent = 'Добавить тариф';
+  }
+
+  openModal('tariffModal');
+}
+
+function editTariff(tariffId) {
+  openTariffModal(tariffId);
+}
+
+// Reset form when modal is closed
+function closeTariffModal() {
+  document.getElementById('tariffForm').reset();
+  document.getElementById('tariffId').value = '';
+  closeModal('tariffModal');
+}
+
+// Override the close button click handler
+document.querySelector('#tariffModal .modal-close').onclick = closeTariffModal;
+</script> 

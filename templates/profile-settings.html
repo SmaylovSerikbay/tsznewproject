@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Настройки профиля — Той со звездой</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <style>
+    .profile-settings {
+      max-width: 800px;
+      margin: 40px auto;
+      background: white;
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .profile-header {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 32px;
+      align-items: center;
+    }
+
+    .profile-photo-wrapper {
+      position: relative;
+      width: 120px;
+      height: 120px;
+    }
+
+    .profile-photo {
+      width: 100%;
+      height: 100%;
+      border-radius: 16px;
+      object-fit: cover;
+    }
+
+    .photo-upload {
+      position: absolute;
+      bottom: -8px;
+      right: -8px;
+      background: #2e6cff;
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .photo-upload:hover {
+      transform: scale(1.1);
+    }
+
+    .photo-upload input {
+      display: none;
+    }
+
+    .profile-title {
+      flex: 1;
+    }
+
+    .profile-title h1 {
+      font-size: 1.8rem;
+      margin: 0 0 8px 0;
+    }
+
+    .profile-title p {
+      color: #666;
+      margin: 0;
+    }
+
+    .settings-section {
+      margin-bottom: 32px;
+    }
+
+    .settings-section h2 {
+      font-size: 1.4rem;
+      margin: 0 0 20px 0;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e3e8ff;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+
+    .form-label {
+      font-weight: 500;
+      color: #1a1a1a;
+      font-size: 0.9rem;
+    }
+
+    .form-input {
+      padding: 12px;
+      border: 2px solid #e3e8ff;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-family: 'Montserrat', sans-serif;
+      transition: all 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: #2e6cff;
+      outline: none;
+    }
+
+    .notification-settings {
+      display: grid;
+      gap: 16px;
+    }
+
+    .notification-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .notification-option input[type="checkbox"] {
+      margin-top: 4px;
+    }
+
+    .notification-option-info h4 {
+      margin: 0 0 4px 0;
+      font-size: 1rem;
+    }
+
+    .notification-option-info p {
+      margin: 0;
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 16px;
+      margin-top: 32px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 500;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    .btn.accent {
+      background: #2e6cff;
+      color: white;
+    }
+
+    .btn.outline {
+      border: 2px solid #2e6cff;
+      color: #2e6cff;
+      background: none;
+    }
+
+    @media (max-width: 768px) {
+      .profile-header {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .btn-group {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+
+    
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="logo">Той со звездой</div>
+      <nav class="nav desktop-nav">
+        <a href="{% url 'main:index' %}" class="nav-link">
+          <i class="ri-home-line"></i>
+          <span>Главная</span>
+        </a>
+        <a href="{% url 'main:catalog' %}" class="nav-link">
+          <i class="ri-group-line"></i>
+          <span>Исполнители</span>
+        </a>
+        {% if user.is_authenticated %}
+          {% if user.user_type == 'customer' %}
+            <a href="{% url 'main:dashboard' %}#create-order" class="nav-link">
+              <i class="ri-add-circle-line"></i>
+              <span>Создать заявку</span>
+            </a>
+          {% endif %}
+          <div class="nav-dropdown">
+            <button class="nav-dropdown-toggle">
+              <div class="user-info">
+                {% if user.profile_photo %}
+                  <img src="{{ user.profile_photo.url }}" alt="{{ user.get_full_name }}" class="nav-avatar">
+                {% else %}
+                  <i class="ri-user-line"></i>
+                {% endif %}
+                <span>{{ user.get_full_name|default:user.phone_number }}</span>
+              </div>
+              <i class="ri-arrow-down-s-line"></i>
+            </button>
+            <div class="nav-dropdown-menu">
+              <a href="{% url 'main:dashboard' %}">
+                <i class="ri-dashboard-line"></i>
+                <span>Личный кабинет</span>
+              </a>
+              <a href="{% url 'main:logout' %}">
+                <i class="ri-logout-box-line"></i>
+                <span>Выйти</span>
+              </a>
+            </div>
+          </div>
+        {% else %}
+          <a href="{% url 'main:auth' %}" class="nav-link auth-link">
+            <i class="ri-login-box-line"></i>
+            <span>Войти по номеру телефона</span>
+          </a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="container">
+      <div class="profile-settings">
+        <div class="profile-header">
+          <div class="profile-photo-wrapper">
+            <img src="https://placehold.co/120x120" alt="Фото профиля" class="profile-photo">
+            <label class="photo-upload">
+              <i class="ri-camera-line"></i>
+              <input type="file" accept="image/*" onchange="handlePhotoUpload(event)">
+            </label>
+          </div>
+          <div class="profile-title">
+            <h1>Настройки профиля</h1>
+            <p>Управляйте своими личными данными и настройками</p>
+          </div>
+        </div>
+
+        <form id="profileForm" onsubmit="handleProfileSubmit(event)">
+          <!-- Личные данные -->
+          <div class="settings-section">
+            <h2>Личные данные</h2>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Имя</label>
+                <input type="text" class="form-input" name="firstName" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Фамилия</label>
+                <input type="text" class="form-input" name="lastName" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-input" name="email" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Телефон</label>
+                <input type="tel" class="form-input" name="phone_number" value="{{ user.phone_number }}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Город</label>
+                <input type="text" class="form-input" name="city" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Дата рождения</label>
+                <input type="date" class="form-input" name="birthDate">
+              </div>
+            </div>
+          </div>
+
+          <!-- Настройки безопасности -->
+          <div class="settings-section">
+            <h2>Безопасность</h2>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Текущий пароль</label>
+                <input type="password" class="form-input" name="currentPassword">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Новый пароль</label>
+                <input type="password" class="form-input" name="newPassword">
+              </div>
+            </div>
+          </div>
+
+          <!-- Настройки уведомлений -->
+          <div class="settings-section">
+            <h2>Уведомления</h2>
+            <div class="notification-settings">
+              <div class="notification-option">
+                <input type="checkbox" name="emailNotifications" id="emailNotifications" checked>
+                <div class="notification-option-info">
+                  <h4>Email уведомления</h4>
+                  <p>Получать уведомления о новых откликах и сообщениях на email</p>
+                </div>
+              </div>
+              <div class="notification-option">
+                <input type="checkbox" name="smsNotifications" id="smsNotifications" checked>
+                <div class="notification-option-info">
+                  <h4>SMS уведомления</h4>
+                  <p>Получать важные уведомления по SMS</p>
+                </div>
+              </div>
+              <div class="notification-option">
+                <input type="checkbox" name="marketingNotifications" id="marketingNotifications">
+                <div class="notification-option-info">
+                  <h4>Маркетинговые рассылки</h4>
+                  <p>Получать новости и специальные предложения</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="btn-group">
+            <button type="submit" class="btn accent">Сохранить изменения</button>
+            <button type="button" class="btn outline" onclick="resetForm()">Отменить</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Загрузка данных пользователя при открытии страницы
+    document.addEventListener('DOMContentLoaded', function() {
+      // В реальном приложении здесь будет запрос к API
+      const userData = {
+        firstName: 'Иван',
+        lastName: 'Иванов',
+        email: 'ivan@example.com',
+        phone_number: '+7 (777) 123-45-67',
+        city: 'Алматы',
+        birthDate: '1990-01-01'
+      };
+
+      // Заполняем форму данными
+      const form = document.getElementById('profileForm');
+      Object.keys(userData).forEach(key => {
+        const input = form.querySelector(`[name="${key}"]`);
+        if (input) {
+          input.value = userData[key];
+        }
+      });
+    });
+
+    // Обработка загрузки фото
+    function handlePhotoUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.querySelector('.profile-photo').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Обработка отправки формы
+    function handleProfileSubmit(event) {
+      event.preventDefault();
+      const formData = new FormData(event.target);
+      
+      // В реальном приложении здесь будет отправка данных на сервер
+      const data = Object.fromEntries(formData.entries());
+      console.log('Сохраняем данные:', data);
+      
+      alert('Профиль успешно обновлен');
+    }
+
+    // Сброс формы
+    function resetForm() {
+      if (confirm('Вы уверены, что хотите отменить изменения?')) {
+        document.getElementById('profileForm').reset();
+      }
+    }
+  </script>
+
+  {% load static %}
+  <script src="{% static 'js/main.js' %}"></script>
+
+      <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>О нас</h3>
+                    <p>Той со звездой - платформа для поиска профессиональных исполнителей для вашего мероприятия.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Контакты</h3>
+                    <p>Email: <a href="mailto:miras.abildin@bk.ru">miras.abildin@bk.ru</a></p>
+                    <p>Телефон: <a href="tel:+77754184629">+7 (775)-418-46-29</a></p>
+                </div>
+                <div class="footer-section">
+                    <h3>Соцсети</h3>
+                    <div class="social-links">
+                        <a href="https://www.instagram.com/_miras_event_/" target="_blank"><i class="ri-instagram-line"></i></a>
+                        <a href="https://www.tiktok.com/@miras_abildin_?_t=ZM-8yOktSAtIhi&_r=1" target="_blank"><i class="ri-tiktok-line"></i></a>
+                        <a href="https://wa.me/77754184629" target="_blank">
+                            <i class="ri-whatsapp-line"></i>
+                        </a>  
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2024 Той со звездой. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html> 

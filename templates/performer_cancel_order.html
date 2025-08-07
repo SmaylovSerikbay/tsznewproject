@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+  <div class="order-detail">
+    <h2>Отмена участия в заказе</h2>
+    <p>Вы действительно хотите отменить участие в этом заказе?</p>
+    <div class="order-section">
+      <h3>{{ order.title }}</h3>
+      <p><strong>Дата:</strong> {{ order.event_date|date:"d.m.Y" }}</p>
+      <p><strong>Город:</strong> {{ order.city }}</p>
+      <p><strong>Описание:</strong> {{ order.description|truncatewords:20 }}</p>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn delete">Отменить участие</button>
+      <a href="{% url 'main:order_detail' order.id %}" class="btn outline">Назад</a>
+    </form>
+  </div>
+</div>
+{% endblock %} 
