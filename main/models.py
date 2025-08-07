@@ -295,6 +295,8 @@ class Order(models.Model):
         ('wedding', 'Свадьба'),
         ('birthday', 'День рождения'),
         ('corporate', 'Корпоратив'),
+        ('anniversary', 'Юбилей'),
+        ('graduation', 'Выпускной'),
         ('other', 'Другое')
     ]
 
