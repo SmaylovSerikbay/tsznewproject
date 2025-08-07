@@ -364,43 +364,81 @@ function loadPortfolioItem(index) {
     
     counter.textContent = index + 1;
     
+    // Показываем индикатор загрузки
+    modalMedia.innerHTML = '<div class="text-white text-center p-8"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div><div class="text-lg font-medium">Загрузка...</div></div>';
+    
+    console.log('Loading portfolio item:', item);
+    console.log('User agent:', navigator.userAgent);
+    
     // Загружаем контент через AJAX
-    fetch(`/portfolio/${item.id}/view/`)
-        .then(response => response.json())
-        .then(data => {
-            let content = '';
-            
-            if (item.mediaType === 'video') {
+    fetch(`/portfolio/${item.id}/view/`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return response.json();
+    })
+    .then(data => {
+        console.log('Received data:', data);
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        let content = '';
+        
+        if (item.mediaType === 'video') {
+            if (data.video_url) {
                 content = `
-                    <video controls class="max-w-full max-h-full object-contain rounded-lg">
+                    <video controls class="max-w-full max-h-full object-contain rounded-lg" preload="metadata">
                         <source src="${data.video_url}" type="video/mp4">
+                        <source src="${data.video_url}" type="video/webm">
                         Ваш браузер не поддерживает видео.
                     </video>
                 `;
             } else {
+                throw new Error('Видео файл недоступен');
+            }
+        } else {
+            if (data.image_url) {
                 content = `
-                    <img src="${data.image_url}" alt="Портфолио" class="max-w-full max-h-full object-contain rounded-lg">
+                    <img src="${data.image_url}" alt="Портфолио" class="max-w-full max-h-full object-contain rounded-lg" onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNjY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7QndC+0LLQsNGPINC90LUg0LfQsNC60LDQt9CwPC90ZXh0Pjwvc3ZnPg==';">
                 `;
+            } else {
+                throw new Error('Изображение недоступно');
             }
-            
-            // Добавляем заголовок и описание
-            if (data.title || data.description) {
-                content += '<div class="text-white text-center mt-4">';
-                if (data.title) {
-                    content += `<div class="text-lg font-medium">${data.title}</div>`;
-                }
-                if (data.description) {
-                    content += `<div class="text-sm opacity-75 mt-1">${data.description}</div>`;
-                }
-                content += '</div>';
+        }
+        
+        // Добавляем заголовок и описание
+        if (data.title || data.description) {
+            content += '<div class="text-white text-center mt-4">';
+            if (data.title) {
+                content += `<div class="text-lg font-medium">${data.title}</div>`;
             }
-            
-            modalMedia.innerHTML = content;
-        })
-        .catch(error => {
-            console.error('Ошибка загрузки портфолио:', error);
-            modalMedia.innerHTML = '<div class="text-white text-center p-8"><div class="text-red-400 mb-4"><i class="ri-error-warning-line text-4xl"></i></div><div class="text-lg font-medium mb-2">Ошибка загрузки</div><div class="text-sm opacity-75">Попробуйте обновить страницу или обратитесь к администратору</div></div>';
-        });
+            if (data.description) {
+                content += `<div class="text-sm opacity-75 mt-1">${data.description}</div>`;
+            }
+            content += '</div>';
+        }
+        
+        modalMedia.innerHTML = content;
+    })
+    .catch(error => {
+        console.error('Ошибка загрузки портфолио:', error);
+        console.error('Error details:', error.message);
+        modalMedia.innerHTML = '<div class="text-white text-center p-8"><div class="text-red-400 mb-4"><i class="ri-error-warning-line text-4xl"></i></div><div class="text-lg font-medium mb-2">Ошибка загрузки</div><div class="text-sm opacity-75 mb-4">' + error.message + '</div><div class="text-xs opacity-50">Попробуйте обновить страницу или обратитесь к администратору</div></div>';
+    });
 }
 
 function nextPhoto() {
