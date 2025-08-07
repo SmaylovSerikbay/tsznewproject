@@ -125,14 +125,20 @@
 }
 
 .btn.accent {
-  background: #3b82f6;
-  color: white;
-  border-color: #3b82f6;
+  background: #dc2626 !important;
+  color: white !important;
+  border-color: #dc2626 !important;
+  font-weight: 600 !important;
+  padding: 12px 24px !important;
+  font-size: 1rem !important;
+  box-shadow: 0 4px 6px rgba(220, 38, 38, 0.3) !important;
 }
 
 .btn.accent:hover {
-  background: #2563eb;
-  border-color: #2563eb;
+  background: #b91c1c !important;
+  border-color: #b91c1c !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 8px rgba(220, 38, 38, 0.4) !important;
 }
 
 .weekdays {
@@ -173,23 +179,30 @@
 }
 
 .calendar-day.selected {
-  background: #fee2e2;
-  color: #dc2626;
-  border-color: #fecaca;
+  background: #dc2626 !important;
+  color: white !important;
+  border-color: #dc2626 !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3);
 }
 
 .calendar-day.selected:hover {
-  background: #fecaca;
+  background: #b91c1c !important;
+  border-color: #b91c1c !important;
 }
 
 .form-footer {
   display: flex;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
 }
 
 .form-footer .btn {
   flex: 1;
+  justify-content: center;
+  min-height: 48px;
 }
 
 @media (max-width: 768px) {
