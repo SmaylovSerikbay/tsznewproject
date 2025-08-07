@@ -2398,7 +2398,6 @@ def test_mobile(request):
     """Тестовая страница для проверки мобильного меню"""
     return render(request, 'test_mobile.html')
 
-@login_required
 def view_portfolio_item(request, item_id):
     """AJAX view для просмотра элемента портфолио"""
     try:
@@ -2409,10 +2408,20 @@ def view_portfolio_item(request, item_id):
         portfolio = get_object_or_404(Portfolio, id=item_id)
         print(f"DEBUG view_portfolio_item: Found portfolio item: {portfolio.id}, media_type: {portfolio.media_type}")
         
-        # Проверяем права доступа (только владелец или публичный просмотр)
-        if portfolio.user != request.user:
-            # Для публичного просмотра можно добавить дополнительные проверки
-            pass
+        # Проверяем права доступа (публичный просмотр разрешен)
+        # Владелец может видеть все, остальные - только если пользователь активен
+        if not request.user.is_authenticated:
+            # Неавторизованные пользователи могут видеть портфолио активных исполнителей
+            if not portfolio.user.is_active:
+                return JsonResponse({
+                    'error': 'Портфолио недоступно'
+                }, status=403)
+        elif request.user != portfolio.user:
+            # Авторизованные пользователи могут видеть портфолио других активных пользователей
+            if not portfolio.user.is_active:
+                return JsonResponse({
+                    'error': 'Портфолио недоступно'
+                }, status=403)
         
         data = {
             'id': portfolio.id,
