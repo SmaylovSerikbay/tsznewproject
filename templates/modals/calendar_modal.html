@@ -191,6 +191,12 @@
   border-color: #b91c1c !important;
 }
 
+.calendar-day[style*="visibility: hidden"] {
+  background: transparent !important;
+  border: none !important;
+  cursor: default !important;
+}
+
 .form-footer {
   display: flex;
   gap: 12px;
@@ -250,6 +256,7 @@ function updateCalendar() {
     const emptyCell = document.createElement('div');
     emptyCell.className = 'calendar-day';
     emptyCell.style.visibility = 'hidden';
+    emptyCell.style.pointerEvents = 'none';
     grid.appendChild(emptyCell);
   }
   
