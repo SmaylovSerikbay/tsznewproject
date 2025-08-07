@@ -148,34 +148,45 @@ class Portfolio(models.Model):
         
         super().save(*args, **kwargs)
 
-    def compress_image(self, max_size=(1200, 1200), quality=85):
+    def compress_image(self, max_width=1920, max_height=1080, quality=85):
         """Сжимает изображение портфолио"""
         if not self.image:
             return
         
         try:
+            from PIL import Image, ImageOps
+            import io
+            
             # Открываем изображение
-            img = Image.open(self.image)
+            img = Image.open(self.image.path)
+            
+            # Автоматически поворачиваем изображение согласно EXIF
+            img = ImageOps.exif_transpose(img)
             
             # Конвертируем в RGB если нужно
             if img.mode != 'RGB':
                 img = img.convert('RGB')
             
-            # Изменяем размер если изображение больше max_size
-            if img.width > max_size[0] or img.height > max_size[1]:
-                img.thumbnail(max_size, Image.Resampling.LANCZOS)
+            # Получаем размеры
+            width, height = img.size
+            
+            # Изменяем размер если нужно
+            if width > max_width or height > max_height:
+                img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
             
             # Сохраняем сжатое изображение
-            output = BytesIO()
+            output = io.BytesIO()
             img.save(output, format='JPEG', quality=quality, optimize=True)
             output.seek(0)
             
-            # Создаем новое имя файла
+            # Получаем размер файла
+            self.file_size = len(output.getvalue())
+            
+            # Сохраняем сжатое изображение
+            from django.core.files import File
             filename = os.path.basename(self.image.name)
             name, ext = os.path.splitext(filename)
             new_filename = f"{name}_compressed.jpg"
-            
-            # Заменяем файл
             self.image.save(new_filename, File(output), save=False)
             
         except Exception as e:
