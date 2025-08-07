@@ -811,7 +811,7 @@
                 <div class="space-y-4">
                   <div class="bg-gray-50 p-4 rounded-lg">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Город</label>
-                                                <span class="text-gray-900">{{ user.city.name|default:"Не указан" if user.city else "Не указан" }}</span>
+                                                <span class="text-gray-900">{% if user.city %}{{ user.city.name }}{% else %}Не указан{% endif %}</span>
               </div>
                   <div class="bg-gray-50 p-4 rounded-lg">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Дата регистрации</label>
