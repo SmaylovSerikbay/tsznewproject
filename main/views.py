@@ -480,7 +480,7 @@ def dashboard(request):
             selected = order.selected_performers or {}
             # Исполнитель видит заказ, если его услуга есть в заказе и по этой услуге еще не выбран исполнитель
             service_type_code = request.user.service_type.code if request.user.service_type else None
-            if (
+            if service_type_code and (
                 service_type_code in services and
                 (not selected.get(service_type_code))
             ):
@@ -514,10 +514,11 @@ def dashboard(request):
         for order in request_orders:
             selected = order.selected_performers or {}
             # Показываем, если исполнитель выбран по своей услуге
-            if str(selected.get(request.user.service_type.code if request.user.service_type else None)) == str(request.user.id):
+            service_type_code = request.user.service_type.code if request.user.service_type else None
+            if service_type_code and str(selected.get(service_type_code)) == str(request.user.id):
                 active_orders.append(order)
             # Для старых заказов (без selected_performers)
-            elif not selected and order.performer_id == request.user.id and (request.user.service_type.code if request.user.service_type else None) in (order.services or []):
+            elif not selected and order.performer_id == request.user.id and service_type_code and service_type_code in (order.services or []):
                 active_orders.append(order)
         
         active_orders = sorted(active_orders, key=lambda o: o.created_at, reverse=True)
@@ -542,7 +543,7 @@ def dashboard(request):
                 # Если заказ в работе, проверяем, выбран ли исполнитель
                 selected = order.selected_performers or {}
                 service_type_code = request.user.service_type.code if request.user.service_type else None
-                if service_type_code in selected and str(selected[service_type_code]) == str(request.user.id):
+                if service_type_code and service_type_code in selected and str(selected[service_type_code]) == str(request.user.id):
                     # Исполнитель выбран - не показываем в откликах
                     continue
                 else:
