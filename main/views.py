@@ -465,6 +465,9 @@ def dashboard(request):
     cleanup_past_busy_dates()
     
     if request.user.user_type == 'performer':
+        # Получаем service_type_code один раз в начале
+        service_type_code = request.user.service_type.code if request.user.service_type else None
+        
         # Получаем все новые заявки-запросы, на которые исполнитель еще не откликался
         all_orders = Order.objects.filter(
             status='new',
@@ -479,7 +482,6 @@ def dashboard(request):
             services = order.services or []
             selected = order.selected_performers or {}
             # Исполнитель видит заказ, если его услуга есть в заказе и по этой услуге еще не выбран исполнитель
-            service_type_code = request.user.service_type.code if request.user.service_type else None
             if service_type_code and (
                 service_type_code in services and
                 (not selected.get(service_type_code))
@@ -514,7 +516,6 @@ def dashboard(request):
         for order in request_orders:
             selected = order.selected_performers or {}
             # Показываем, если исполнитель выбран по своей услуге
-            service_type_code = request.user.service_type.code if request.user.service_type else None
             if service_type_code and str(selected.get(service_type_code)) == str(request.user.id):
                 active_orders.append(order)
             # Для старых заказов (без selected_performers)
@@ -542,7 +543,6 @@ def dashboard(request):
             elif order.status == 'in_progress':
                 # Если заказ в работе, проверяем, выбран ли исполнитель
                 selected = order.selected_performers or {}
-                service_type_code = request.user.service_type.code if request.user.service_type else None
                 if service_type_code and service_type_code in selected and str(selected[service_type_code]) == str(request.user.id):
                     # Исполнитель выбран - не показываем в откликах
                     continue
