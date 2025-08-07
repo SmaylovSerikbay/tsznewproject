@@ -2400,35 +2400,54 @@ def test_mobile(request):
 @login_required
 def view_portfolio_item(request, item_id):
     """AJAX view для просмотра элемента портфолио"""
-    portfolio = get_object_or_404(Portfolio, id=item_id)
-    
-    # Проверяем права доступа (только владелец или публичный просмотр)
-    if portfolio.user != request.user:
-        # Для публичного просмотра можно добавить дополнительные проверки
-        pass
-    
-    data = {
-        'id': portfolio.id,
-        'media_type': portfolio.media_type,
-        'title': portfolio.title or '',
-        'description': portfolio.description or '',
-        'duration': portfolio.duration,
-        'file_size': portfolio.file_size,
-    }
-    
-    if portfolio.media_type == 'video':
-        if portfolio.video:
-            data['video_url'] = portfolio.video.url
+    try:
+        portfolio = get_object_or_404(Portfolio, id=item_id)
+        
+        # Проверяем права доступа (только владелец или публичный просмотр)
+        if portfolio.user != request.user:
+            # Для публичного просмотра можно добавить дополнительные проверки
+            pass
+        
+        data = {
+            'id': portfolio.id,
+            'media_type': portfolio.media_type,
+            'title': portfolio.title or '',
+            'description': portfolio.description or '',
+            'duration': portfolio.duration,
+            'file_size': portfolio.file_size,
+        }
+        
+        if portfolio.media_type == 'video':
+            if portfolio.video and portfolio.video.url:
+                data['video_url'] = portfolio.video.url
+                # Проверяем существование файла
+                if not os.path.exists(portfolio.video.path):
+                    data['error'] = 'Видео файл не найден'
+                    data['video_url'] = None
+            else:
+                data['video_url'] = None
+                data['error'] = 'Видео файл отсутствует'
+            
+            if portfolio.thumbnail and portfolio.thumbnail.url:
+                data['thumbnail_url'] = portfolio.thumbnail.url
+            else:
+                data['thumbnail_url'] = None
         else:
-            data['video_url'] = None
-        if portfolio.thumbnail:
-            data['thumbnail_url'] = portfolio.thumbnail.url
-        else:
-            data['thumbnail_url'] = None
-    else:
-        if portfolio.image:
-            data['image_url'] = portfolio.image.url
-        else:
-            data['image_url'] = None
-    
-    return JsonResponse(data)
+            if portfolio.image and portfolio.image.url:
+                data['image_url'] = portfolio.image.url
+                # Проверяем существование файла
+                if not os.path.exists(portfolio.image.path):
+                    data['error'] = 'Изображение не найдено'
+                    data['image_url'] = None
+            else:
+                data['image_url'] = None
+                data['error'] = 'Изображение отсутствует'
+        
+        return JsonResponse(data)
+        
+    except Exception as e:
+        print(f"Error in view_portfolio_item: {str(e)}")
+        return JsonResponse({
+            'error': 'Ошибка при загрузке медиа файла',
+            'details': str(e)
+        }, status=500)
