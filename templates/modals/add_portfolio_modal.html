@@ -1,13 +1,14 @@
 <!-- Add Portfolio Modal -->
-<div id="addPortfolioModal" class="modal">
-  <div class="modal-content">
-    <button class="modal-close" onclick="closeModal('addPortfolioModal')">
-      <i class="ri-close-line"></i>
-    </button>
-    <div class="modal-header">
-      <h2 class="modal-title">Добавить в портфолио</h2>
+<div id="addPortfolioModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center p-6 border-b border-gray-200">
+      <h2 class="text-xl font-semibold text-gray-900">Добавить в портфолио</h2>
+      <button class="text-gray-400 hover:text-gray-600 transition-colors" onclick="closeModal('addPortfolioModal')">
+        <i class="ri-close-line text-2xl"></i>
+      </button>
     </div>
-    <form id="portfolioForm" action="{% url 'main:add_portfolio' %}" method="POST" enctype="multipart/form-data">
+    
+    <form id="portfolioForm" action="{% url 'main:add_portfolio' %}" method="POST" enctype="multipart/form-data" class="p-6">
       {% csrf_token %}
       
       <!-- Media Type Selection -->
@@ -15,12 +16,12 @@
         <label class="block text-sm font-medium text-gray-700 mb-3">Тип медиа:</label>
         <div class="flex space-x-4">
           <label class="flex items-center">
-            <input type="radio" name="media_type" value="image" checked class="mr-2" onchange="toggleMediaType()">
-            <span class="text-sm">Фото</span>
+            <input type="radio" name="media_type" value="image" checked class="mr-2 text-blue-600 focus:ring-blue-500" onchange="toggleMediaType()">
+            <span class="text-sm text-gray-700">Фото</span>
           </label>
           <label class="flex items-center">
-            <input type="radio" name="media_type" value="video" class="mr-2" onchange="toggleMediaType()">
-            <span class="text-sm">Видео</span>
+            <input type="radio" name="media_type" value="video" class="mr-2 text-blue-600 focus:ring-blue-500" onchange="toggleMediaType()">
+            <span class="text-sm text-gray-700">Видео</span>
           </label>
         </div>
       </div>
@@ -38,284 +39,129 @@
       </div>
 
       <!-- File Upload -->
-      <div id="dropzone" class="dropzone" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
-        <i class="ri-upload-cloud-2-line" style="font-size: 48px; color: #2e6cff; margin-bottom: 16px;"></i>
-        <p id="dropzoneText">Перетащите файл сюда или <span style="color: #2e6cff; text-decoration: underline; cursor: pointer;" onclick="document.getElementById('portfolioUpload').click()">выберите файл</span></p>
+      <div id="dropzone" class="border-2 border-dashed border-blue-200 rounded-lg p-8 text-center cursor-pointer transition-all duration-200 bg-blue-50 hover:bg-blue-100" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+        <i class="ri-upload-cloud-2-line text-4xl text-blue-500 mb-4"></i>
+        <p id="dropzoneText" class="text-gray-700">Перетащите файл сюда или <span class="text-blue-500 underline cursor-pointer" onclick="document.getElementById('portfolioUpload').click()">выберите файл</span></p>
         <p id="fileTypes" class="text-sm text-gray-500 mt-2">Поддерживаемые форматы: JPG, PNG, GIF</p>
-        <input type="file" id="portfolioUpload" name="image" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
-        <div id="preview" class="preview-container" style="margin-top: 20px;"></div>
+        <input type="file" id="portfolioUpload" name="image" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+        <div id="preview" class="mt-4"></div>
       </div>
       
-      <div class="form-footer" style="margin-top: 24px;">
-        <button type="submit" class="btn accent">Загрузить</button>
+      <div class="flex justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
+        <button type="button" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors" onclick="closeModal('addPortfolioModal')">
+          Отмена
+        </button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          Загрузить
+        </button>
       </div>
     </form>
   </div>
 </div>
 
-<style>
-.dropzone {
-  border: 2px dashed #e3e8ff;
-  border-radius: 12px;
-  padding: 32px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  background: #f8f9fa;
-}
-
-.dropzone.dragover {
-  border-color: #2e6cff;
-  background: #f5f8ff;
-}
-
-.preview-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.preview-item {
-  position: relative;
-  max-width: 300px;
-  max-height: 300px;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.preview-item img,
-.preview-item video {
-  width: 100%;
-  height: auto;
-  max-height: 300px;
-  object-fit: cover;
-}
-
-.preview-item .remove {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #e74c3c;
-  font-size: 18px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.preview-item .file-info {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 8px;
-  font-size: 12px;
-}
-
-.video-preview {
-  position: relative;
-  width: 100%;
-  max-width: 300px;
-}
-
-.video-preview .play-button {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  cursor: pointer;
-}
-</style>
-
 <script>
-let selectedFile = null;
-let currentMediaType = 'image';
-
 function toggleMediaType() {
   const imageRadio = document.querySelector('input[value="image"]');
   const videoRadio = document.querySelector('input[value="video"]');
-  const fileInput = document.getElementById('portfolioUpload');
+  const dropzone = document.getElementById('dropzone');
   const dropzoneText = document.getElementById('dropzoneText');
   const fileTypes = document.getElementById('fileTypes');
+  const fileInput = document.getElementById('portfolioUpload');
   
   if (imageRadio.checked) {
-    currentMediaType = 'image';
-    fileInput.name = 'image';
-    fileInput.accept = 'image/*';
-    dropzoneText.innerHTML = 'Перетащите фото сюда или <span style="color: #2e6cff; text-decoration: underline; cursor: pointer;" onclick="document.getElementById(\'portfolioUpload\').click()">выберите файл</span>';
+    dropzone.className = 'border-2 border-dashed border-blue-200 rounded-lg p-8 text-center cursor-pointer transition-all duration-200 bg-blue-50 hover:bg-blue-100';
+    dropzoneText.innerHTML = 'Перетащите фото сюда или <span class="text-blue-500 underline cursor-pointer" onclick="document.getElementById(\'portfolioUpload\').click()">выберите файл</span>';
     fileTypes.textContent = 'Поддерживаемые форматы: JPG, PNG, GIF';
+    fileInput.accept = 'image/*';
+    fileInput.name = 'image';
   } else {
-    currentMediaType = 'video';
-    fileInput.name = 'video';
+    dropzone.className = 'border-2 border-dashed border-green-200 rounded-lg p-8 text-center cursor-pointer transition-all duration-200 bg-green-50 hover:bg-green-100';
+    dropzoneText.innerHTML = 'Перетащите видео сюда или <span class="text-green-500 underline cursor-pointer" onclick="document.getElementById(\'portfolioUpload\').click()">выберите файл</span>';
+    fileTypes.textContent = 'Поддерживаемые форматы: MP4, AVI, MOV';
     fileInput.accept = 'video/*';
-    dropzoneText.innerHTML = 'Перетащите видео сюда или <span style="color: #2e6cff; text-decoration: underline; cursor: pointer;" onclick="document.getElementById(\'portfolioUpload\').click()">выберите файл</span>';
-    fileTypes.textContent = 'Поддерживаемые форматы: MP4, AVI, MOV (макс. 100MB)';
+    fileInput.name = 'video';
   }
-  
-  // Clear current selection
-  selectedFile = null;
-  document.getElementById('preview').innerHTML = '';
-}
-
-function handleDragOver(e) {
-  e.preventDefault();
-  e.stopPropagation();
-  document.getElementById('dropzone').classList.add('dragover');
-}
-
-function handleDragLeave(e) {
-  e.preventDefault();
-  e.stopPropagation();
-  document.getElementById('dropzone').classList.remove('dragover');
 }
 
 function handleDrop(e) {
   e.preventDefault();
-  e.stopPropagation();
-  document.getElementById('dropzone').classList.remove('dragover');
-  
-  const dt = e.dataTransfer;
-  const files = dt.files;
-  
+  const files = e.dataTransfer.files;
   if (files.length > 0) {
     handleFile(files[0]);
   }
 }
 
+function handleDragOver(e) {
+  e.preventDefault();
+  const dropzone = document.getElementById('dropzone');
+  dropzone.classList.add('border-blue-400', 'bg-blue-100');
+}
+
+function handleDragLeave(e) {
+  e.preventDefault();
+  const dropzone = document.getElementById('dropzone');
+  dropzone.classList.remove('border-blue-400', 'bg-blue-100');
+}
+
 function handleFileSelect(e) {
-  const files = e.target.files;
-  if (files.length > 0) {
-    handleFile(files[0]);
+  const file = e.target.files[0];
+  if (file) {
+    handleFile(file);
   }
 }
 
 function handleFile(file) {
-  const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif'];
-  const allowedVideoTypes = ['video/mp4', 'video/avi', 'video/mov', 'video/quicktime'];
-  const maxSize = 100 * 1024 * 1024; // 100MB
-  
-  // Check file size
-  if (file.size > maxSize) {
-    alert('Файл слишком большой. Максимальный размер: 100MB');
-    return;
-  }
-  
-  // Check file type
-  if (currentMediaType === 'image' && !allowedImageTypes.includes(file.type)) {
-    alert('Неподдерживаемый формат изображения. Используйте JPG, PNG или GIF');
-    return;
-  }
-  
-  if (currentMediaType === 'video' && !allowedVideoTypes.includes(file.type)) {
-    alert('Неподдерживаемый формат видео. Используйте MP4, AVI или MOV');
-    return;
-  }
-  
-  selectedFile = file;
-  showPreview(file);
-}
-
-function showPreview(file) {
+  const imageRadio = document.querySelector('input[value="image"]');
   const preview = document.getElementById('preview');
-  const reader = new FileReader();
   
-  reader.onload = function(e) {
-    let previewHTML = '';
-    
-    if (currentMediaType === 'image') {
-      previewHTML = `
-        <div class="preview-item">
-          <img src="${e.target.result}" alt="Preview">
-          <div class="remove" onclick="removeFile()">
-            <i class="ri-close-line"></i>
+  // Очищаем предыдущий превью
+  preview.innerHTML = '';
+  
+  if (imageRadio.checked) {
+    // Показываем превью изображения
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        preview.innerHTML = `
+          <div class="relative inline-block">
+            <img src="${e.target.result}" alt="Preview" class="max-w-full h-auto max-h-48 rounded-lg shadow-md">
+            <button type="button" onclick="removeFile()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors">
+              <i class="ri-close-line text-sm"></i>
+            </button>
           </div>
-          <div class="file-info">
-            ${file.name} (${formatFileSize(file.size)})
-          </div>
-        </div>
-      `;
-    } else {
-      previewHTML = `
-        <div class="preview-item video-preview">
-          <video src="${e.target.result}" preload="metadata"></video>
-          <div class="play-button" onclick="toggleVideo(this)">
-            <i class="ri-play-fill"></i>
-          </div>
-          <div class="remove" onclick="removeFile()">
-            <i class="ri-close-line"></i>
-          </div>
-          <div class="file-info">
-            ${file.name} (${formatFileSize(file.size)})
-          </div>
-        </div>
-      `;
+        `;
+      };
+      reader.readAsDataURL(file);
     }
-    
-    preview.innerHTML = previewHTML;
-  };
-  
-  reader.readAsDataURL(file);
-}
-
-function toggleVideo(playButton) {
-  const video = playButton.parentElement.querySelector('video');
-  const icon = playButton.querySelector('i');
-  
-  if (video.paused) {
-    video.play();
-    icon.className = 'ri-pause-fill';
   } else {
-    video.pause();
-    icon.className = 'ri-play-fill';
+    // Показываем превью видео
+    if (file.type.startsWith('video/')) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        preview.innerHTML = `
+          <div class="relative inline-block">
+            <video src="${e.target.result}" controls class="max-w-full h-auto max-h-48 rounded-lg shadow-md"></video>
+            <button type="button" onclick="removeFile()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors">
+              <i class="ri-close-line text-sm"></i>
+            </button>
+          </div>
+        `;
+      };
+      reader.readAsDataURL(file);
+    }
   }
 }
 
 function removeFile() {
-  selectedFile = null;
   document.getElementById('preview').innerHTML = '';
   document.getElementById('portfolioUpload').value = '';
 }
 
-function formatFileSize(bytes) {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
-// Reset the form when modal is closed
-function closePortfolioModal() {
-  selectedFile = null;
-  document.getElementById('preview').innerHTML = '';
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId);
+  modal.classList.add('hidden');
+  // Сброс формы
   document.getElementById('portfolioForm').reset();
-  document.querySelector('input[value="image"]').checked = true;
-  toggleMediaType();
-  closeModal('addPortfolioModal');
+  document.getElementById('preview').innerHTML = '';
 }
-
-// Override the close button click handler
-document.querySelector('#addPortfolioModal .modal-close').onclick = closePortfolioModal;
-
-// Initialize media type
-document.addEventListener('DOMContentLoaded', function() {
-  toggleMediaType();
-});
 </script> 
