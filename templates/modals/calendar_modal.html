@@ -235,7 +235,8 @@ function updateCalendar() {
   // Add empty cells for days before the first day of month
   for (let i = 0; i < firstDayIndex; i++) {
     const emptyCell = document.createElement('div');
-    emptyCell.style.aspectRatio = '1';
+    emptyCell.className = 'calendar-day';
+    emptyCell.style.visibility = 'hidden';
     grid.appendChild(emptyCell);
   }
   
