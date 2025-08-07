@@ -1335,7 +1335,7 @@
                  </span>
                   <span class="flex items-center gap-2">
                     <i class="ri-user-star-line text-primary"></i>
-                                               {{ user.service_type.name|default:"Не указана" if user.service_type else "Не указана" }}
+                                               {% if user.service_type %}{{ user.service_type.name }}{% else %}Не указана{% endif %}
                  </span>
                   </div>
                 <button onclick="openEditProfileModal()" class="bg-primary text-white px-5 py-2 rounded-lg hover:bg-primary-dark transition-colors">
