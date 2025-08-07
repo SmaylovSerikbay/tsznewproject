@@ -8,6 +8,7 @@ from .models import User, Order, Category, Review, Portfolio, Tariff, BusyDate, 
 from .forms import UserRegistrationForm, UserProfileForm, OrderForm, ReviewForm, PortfolioForm, TariffForm
 from .services import WhatsAppOTPService
 import json
+import os
 from datetime import datetime, timedelta, date
 from django.views.decorators.http import require_http_methods, require_GET, require_POST
 from django.views.decorators.csrf import csrf_exempt
