@@ -2402,7 +2402,12 @@ def test_mobile(request):
 def view_portfolio_item(request, item_id):
     """AJAX view для просмотра элемента портфолио"""
     try:
+        print(f"DEBUG view_portfolio_item: Request for item_id={item_id}")
+        print(f"DEBUG view_portfolio_item: User agent: {request.META.get('HTTP_USER_AGENT', 'Unknown')}")
+        print(f"DEBUG view_portfolio_item: Request method: {request.method}")
+        
         portfolio = get_object_or_404(Portfolio, id=item_id)
+        print(f"DEBUG view_portfolio_item: Found portfolio item: {portfolio.id}, media_type: {portfolio.media_type}")
         
         # Проверяем права доступа (только владелец или публичный просмотр)
         if portfolio.user != request.user:
@@ -2421,13 +2426,18 @@ def view_portfolio_item(request, item_id):
         if portfolio.media_type == 'video':
             if portfolio.video and portfolio.video.url:
                 data['video_url'] = portfolio.video.url
+                print(f"DEBUG view_portfolio_item: Video URL: {data['video_url']}")
                 # Проверяем существование файла
                 if not os.path.exists(portfolio.video.path):
+                    print(f"DEBUG view_portfolio_item: Video file not found at path: {portfolio.video.path}")
                     data['error'] = 'Видео файл не найден'
                     data['video_url'] = None
+                else:
+                    print(f"DEBUG view_portfolio_item: Video file exists at path: {portfolio.video.path}")
             else:
                 data['video_url'] = None
                 data['error'] = 'Видео файл отсутствует'
+                print(f"DEBUG view_portfolio_item: No video file or URL")
             
             if portfolio.thumbnail and portfolio.thumbnail.url:
                 data['thumbnail_url'] = portfolio.thumbnail.url
@@ -2436,18 +2446,27 @@ def view_portfolio_item(request, item_id):
         else:
             if portfolio.image and portfolio.image.url:
                 data['image_url'] = portfolio.image.url
+                print(f"DEBUG view_portfolio_item: Image URL: {data['image_url']}")
                 # Проверяем существование файла
                 if not os.path.exists(portfolio.image.path):
+                    print(f"DEBUG view_portfolio_item: Image file not found at path: {portfolio.image.path}")
                     data['error'] = 'Изображение не найдено'
                     data['image_url'] = None
+                else:
+                    print(f"DEBUG view_portfolio_item: Image file exists at path: {portfolio.image.path}")
             else:
                 data['image_url'] = None
                 data['error'] = 'Изображение отсутствует'
+                print(f"DEBUG view_portfolio_item: No image file or URL")
         
+        print(f"DEBUG view_portfolio_item: Returning data: {data}")
         return JsonResponse(data)
         
     except Exception as e:
-        print(f"Error in view_portfolio_item: {str(e)}")
+        print(f"ERROR in view_portfolio_item: {str(e)}")
+        print(f"ERROR in view_portfolio_item: Exception type: {type(e)}")
+        import traceback
+        print(f"ERROR in view_portfolio_item: Traceback: {traceback.format_exc()}")
         return JsonResponse({
             'error': 'Ошибка при загрузке медиа файла',
             'details': str(e)
