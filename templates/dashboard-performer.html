@@ -1092,16 +1092,12 @@
 
         <!-- Portfolio Tab -->
         <div id="portfolioTab" class="tab-content hidden p-6">
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-            <div>
-              <h2 class="text-xl font-semibold text-gray-900">Портфолио</h2>
-              <p class="text-sm text-gray-600 mt-1">Управляйте вашим портфолио</p>
-            </div>
-            <div class="flex gap-2 mt-4 md:mt-0">
-              <button onclick="openModal('addPortfolioModal')" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors">
-                <i class="ri-add-line mr-2"></i>Добавить в портфолио
-              </button>
-            </div>
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">Мое портфолио</h2>
+            <button onclick="openModal('addPortfolioModal')" class="btn accent">
+              <i class="ri-add-line mr-2"></i>
+              Добавить в портфолио
+            </button>
           </div>
           
           <!-- Portfolio Grid -->
@@ -1142,28 +1138,20 @@
                 {% endif %}
               </div>
               <div class="p-4">
-                <div class="text-sm font-medium text-gray-900 mb-2">
-                  {% if item.title and item.title.strip %}
-                    {{ item.title }}
-                  {% else %}
-                    {% if item.media_type == 'video' %}
-                      Видео #{{ forloop.counter }}
-                    {% else %}
-                      Фото #{{ forloop.counter }}
-                    {% endif %}
-                  {% endif %}
-                </div>
-                {% if item.description and item.description.strip %}
-                  <div class="text-xs text-gray-500 mb-2">{{ item.description|truncatechars:50 }}</div>
+                {% if item.title and item.title.strip %}
+                  <h3 class="font-semibold text-gray-900 mb-1">{{ item.title }}</h3>
                 {% endif %}
-                <form action="{% url 'main:delete_portfolio_photo' item.id %}" method="POST" onclick="event.stopPropagation()">
+                {% if item.description and item.description.strip %}
+                  <p class="text-sm text-gray-600">{{ item.description }}</p>
+                {% endif %}
+              </div>
+              <form action="{% url 'main:delete_portfolio_photo' item.id %}" method="POST" onclick="event.stopPropagation()">
                 {% csrf_token %}
                   <button type="submit" onclick="return confirm('Удалить этот элемент портфолио?')" class="text-red-600 hover:text-red-900 text-sm font-medium">
                     <i class="ri-delete-bin-line mr-1"></i>Удалить
                 </button>
               </form>
             </div>
-              </div>
           {% empty %}
             <div class="col-span-full text-center py-12">
               <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">

@@ -1360,26 +1360,34 @@ def user_logout(request):
 @login_required
 def add_portfolio(request):
     if request.method == 'POST':
-        form = PortfolioForm(request.POST, request.FILES)
-        
-        if form.is_valid():
-            portfolio = form.save(commit=False)
-            portfolio.user = request.user
+        try:
+            # Получаем файл
+            image = request.FILES.get('image')
+            video = request.FILES.get('video')
+            
+            if not image and not video:
+                return JsonResponse({'success': False, 'error': 'Выберите файл'})
+            
+            # Создаем объект портфолио
+            portfolio = Portfolio(user=request.user)
+            
+            # Устанавливаем файл и тип медиа
+            if image:
+                portfolio.image = image
+                portfolio.media_type = 'image'
+            elif video:
+                portfolio.video = video
+                portfolio.media_type = 'video'
+            
+            # Сохраняем
             portfolio.save()
             
-            media_type = portfolio.media_type
-            if media_type == 'video':
-                messages.success(request, 'Видео успешно добавлено в портфолио')
-            else:
-                messages.success(request, 'Фотография успешно добавлена в портфолио')
-        else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f'{field}: {error}')
-        
-        return redirect('main:dashboard')
+            return JsonResponse({'success': True})
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
     
-    return redirect('main:dashboard')
+    return JsonResponse({'success': False, 'error': 'Неверный метод запроса'})
 
 @login_required
 def manage_tariff(request):
