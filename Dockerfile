@@ -40,4 +40,4 @@ RUN python manage.py collectstatic --noinput
 EXPOSE 8000
 
 # Команда для запуска
-CMD ["sh", "-c", "python manage.py migrate && gunicorn --bind 0.0.0.0:8000 tsz2.wsgi:application"] 
+CMD ["sh", "-c", "python manage.py migrate && python manage.py shell -c \"from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@gmail.com', 'admin') if not User.objects.filter(username='admin').exists() else None\" && gunicorn --bind 0.0.0.0:8000 tsz2.wsgi:application"] 
