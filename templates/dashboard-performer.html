@@ -1831,7 +1831,7 @@
         })
         .catch(error => {
           console.error('Ошибка загрузки портфолио:', error);
-          content.innerHTML = '<div class="text-white text-center">Ошибка загрузки</div>';
+          content.innerHTML = '<div class="text-white text-center p-8"><div class="text-red-400 mb-4"><i class="ri-error-warning-line text-4xl"></i></div><div class="text-lg font-medium mb-2">Ошибка загрузки</div><div class="text-sm opacity-75">Попробуйте обновить страницу или обратитесь к администратору</div></div>';
         });
     }
 
