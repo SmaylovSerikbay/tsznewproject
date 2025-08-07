@@ -23,6 +23,9 @@ COPY . .
 # Создаем пользователя для безопасности
 RUN useradd --create-home --shell /bin/bash app
 
+# Создаем папки media
+RUN mkdir -p /app/media/profile_photos /app/media/portfolio
+
 # Устанавливаем правильные права доступа
 RUN chown -R app:app /app
 RUN chmod -R 755 /app
