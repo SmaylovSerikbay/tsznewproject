@@ -61,6 +61,7 @@ class User(AbstractUser):
     company_name = models.CharField(max_length=100, blank=True, null=True)
     service_type = models.ForeignKey(ServiceType, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Тип услуги')
     bio = models.TextField(blank=True)
+    experience_years = models.IntegerField(default=0, verbose_name='Опыт работы (лет)')
     services = models.JSONField(default=list, blank=True, null=True, help_text="Список предоставляемых услуг")
     
     # Настройки уведомлений
