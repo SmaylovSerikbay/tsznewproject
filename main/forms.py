@@ -55,41 +55,34 @@ class ReviewForm(forms.ModelForm):
 class PortfolioForm(forms.ModelForm):
     class Meta:
         model = Portfolio
-        fields = ['title', 'description', 'image', 'video']
-        widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Название работы'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Описание работы'}),
-            'image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
-            'video': forms.FileInput(attrs={'class': 'form-control', 'accept': 'video/*'}),
-        }
+        fields = ['image', 'video']
     
     def clean(self):
         cleaned_data = super().clean()
         image = cleaned_data.get('image')
         video = cleaned_data.get('video')
         
-        # Проверяем, что загружен хотя бы один файл
         if not image and not video:
-            raise forms.ValidationError('Необходимо загрузить изображение или видео')
+            raise forms.ValidationError('Выберите изображение или видео')
         
-        # Проверяем, что не загружены оба файла одновременно
         if image and video:
-            raise forms.ValidationError('Можно загрузить только изображение ИЛИ видео')
+            raise forms.ValidationError('Выберите только изображение или только видео')
         
         return cleaned_data
     
     def save(self, commit=True):
-        instance = super().save(commit=False)
+        portfolio = super().save(commit=False)
         
-        # Определяем тип медиа
-        if instance.video:
-            instance.media_type = 'video'
-        elif instance.image:
-            instance.media_type = 'image'
+        # Устанавливаем тип медиа
+        if self.cleaned_data.get('video'):
+            portfolio.media_type = 'video'
+        elif self.cleaned_data.get('image'):
+            portfolio.media_type = 'image'
         
         if commit:
-            instance.save()
-        return instance
+            portfolio.save()
+        
+        return portfolio
 
 class TariffForm(forms.ModelForm):
     class Meta:

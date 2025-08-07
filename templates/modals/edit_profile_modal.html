@@ -3,120 +3,99 @@
   <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
     <div class="flex justify-between items-center p-6 border-b border-gray-200">
       <h2 class="text-xl font-semibold text-gray-900">Редактировать профиль</h2>
-      <button class="text-gray-400 hover:text-gray-600 transition-colors" onclick="closeEditProfileModal()">
-        <i class="ri-close-line text-2xl"></i>
+      <button class="text-gray-400 hover:text-gray-600 text-2xl" onclick="closeModal('editProfileModal')">
+        <i class="ri-close-line"></i>
       </button>
     </div>
     
-    <form id="editProfileForm" action="{% url 'main:edit_profile' %}" method="POST" enctype="multipart/form-data" class="p-6">
+    <form id="editProfileForm" action="{% url 'main:profile_settings' %}" method="POST" enctype="multipart/form-data" class="p-6">
       {% csrf_token %}
       
-      <!-- Profile Photo -->
-      <div class="mb-6">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Фото профиля</label>
-        <div class="flex items-center space-x-4">
-          <div class="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-            <img id="profilePhotoPreview" src="{{ user.profile_photo.url|default:'/static/images/default-avatar.jpg' }}" alt="Profile" class="w-full h-full object-cover">
+      <div class="space-y-6">
+        <!-- Profile Photo -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Фото профиля</label>
+          <div class="flex items-center space-x-4">
+            <div class="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+              <img id="profilePhotoPreview" src="" alt="Фото профиля" class="w-full h-full object-cover hidden">
+              <i class="ri-user-line text-gray-400 text-2xl" id="profilePhotoIcon"></i>
+            </div>
+            <div>
+              <input type="file" id="profilePhoto" name="profile_photo" accept="image/*" class="hidden" onchange="previewProfilePhoto(event)">
+              <button type="button" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors" onclick="document.getElementById('profilePhoto').click()">
+                Выбрать фото
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Personal Information -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="firstName" class="block text-sm font-medium text-gray-700 mb-2">Имя</label>
+            <input type="text" id="firstName" name="first_name" value="{{ user.first_name }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
           </div>
           <div>
-            <input type="file" name="profile_photo" accept="image/*" class="hidden" id="profilePhotoInput" onchange="previewProfilePhoto(event)">
-            <button type="button" onclick="document.getElementById('profilePhotoInput').click()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-              Выбрать фото
-            </button>
+            <label for="lastName" class="block text-sm font-medium text-gray-700 mb-2">Фамилия</label>
+            <input type="text" id="lastName" name="last_name" value="{{ user.last_name }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          </div>
+        </div>
+        
+        <div>
+          <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Телефон</label>
+          <input type="tel" id="phone" name="phone_number" value="{{ user.phone_number }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" readonly>
+        </div>
+        
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+          <input type="email" id="email" name="email" value="{{ user.email }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        </div>
+        
+        <div>
+          <label for="bio" class="block text-sm font-medium text-gray-700 mb-2">О себе</label>
+          <textarea id="bio" name="bio" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Расскажите о себе, своем опыте и услугах">{{ user.bio }}</textarea>
+        </div>
+        
+        <!-- Service Information -->
+        <div class="border-t border-gray-200 pt-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Информация об услугах</h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="experience" class="block text-sm font-medium text-gray-700 mb-2">Опыт работы (лет)</label>
+              <input type="number" id="experience" name="experience_years" value="{{ user.experience_years }}" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div>
+              <label for="city" class="block text-sm font-medium text-gray-700 mb-2">Город</label>
+              <select id="city" name="city" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option value="">Выберите город</option>
+                {% for city in cities %}
+                  <option value="{{ city.id }}" {% if user.city == city %}selected{% endif %}>{{ city.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          
+          <div class="mt-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Типы услуг</label>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {% for service_type in service_types %}
+                <label class="flex items-center">
+                  <input type="checkbox" name="service_types" value="{{ service_type.id }}" 
+                         {% if service_type in user.service_types.all %}checked{% endif %}
+                         class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                  <span class="text-sm text-gray-700">{{ service_type.name }}</span>
+                </label>
+              {% endfor %}
+            </div>
           </div>
         </div>
       </div>
       
-      <!-- Personal Information -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Имя</label>
-          <input type="text" name="first_name" value="{{ user.first_name }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Фамилия</label>
-          <input type="text" name="last_name" value="{{ user.last_name }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-        </div>
-      </div>
-      
-      <div class="mb-6">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-        <input type="email" name="email" value="{{ user.email }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-      </div>
-      
-      <div class="mb-6">
-        <label class="block text-sm font-medium text-gray-700 mb-2">О себе</label>
-        <textarea name="bio" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Расскажите о себе и своем опыте">{{ user.bio|default:'' }}</textarea>
-      </div>
-      
-      <!-- Contact Information -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Город</label>
-          <select name="city" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            <option value="">Выберите город</option>
-            {% for city in cities %}
-              <option value="{{ city.id }}" {% if user.city == city %}selected{% endif %}>{{ city.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Специализация</label>
-          <select name="specialization" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            <option value="">Выберите специализацию</option>
-            <option value="photographer" {% if user.specialization == 'photographer' %}selected{% endif %}>Фотограф</option>
-            <option value="videographer" {% if user.specialization == 'videographer' %}selected{% endif %}>Видеограф</option>
-            <option value="musician" {% if user.specialization == 'musician' %}selected{% endif %}>Музыкант</option>
-            <option value="host" {% if user.specialization == 'host' %}selected{% endif %}>Ведущий</option>
-            <option value="dj" {% if user.specialization == 'dj' %}selected{% endif %}>DJ</option>
-          </select>
-        </div>
-      </div>
-      
-      <!-- Experience and Pricing -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Опыт работы (лет)</label>
-          <input type="number" name="experience_years" value="{{ user.experience_years|default:0 }}" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Стоимость за час (₸)</label>
-          <input type="number" name="hourly_rate" value="{{ user.hourly_rate|default:0 }}" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-        </div>
-      </div>
-      
-      <!-- Social Links -->
-      <div class="mb-6">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Instagram</label>
-        <input type="url" name="instagram" value="{{ user.instagram|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="https://instagram.com/username">
-      </div>
-      
-      <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-        <button type="button" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors" onclick="closeEditProfileModal()">
-          Отмена
-        </button>
-        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-          Сохранить изменения
-        </button>
+      <div class="flex justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
+        <button type="button" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors" onclick="closeEditProfileModal()">Отмена</button>
+        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">Сохранить</button>
       </div>
     </form>
   </div>
-</div>
-
-<script>
-function closeEditProfileModal() {
-  const modal = document.getElementById('editProfileModal');
-  modal.classList.add('hidden');
-}
-
-function previewProfilePhoto(event) {
-  const file = event.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      document.getElementById('profilePhotoPreview').src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  }
-}
-</script> 
+</div> 
