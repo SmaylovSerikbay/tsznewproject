@@ -59,7 +59,7 @@ coverage.xml
 *.log
 local_settings.py
 db.sqlite3
-db.sqlite3.backup
+db.sqlite3-journal
 
 # Flask stuff:
 instance/
@@ -132,11 +132,10 @@ dmypy.json
 *.log
 local_settings.py
 db.sqlite3
-db.sqlite3.backup
+db.sqlite3-journal
 
-# Media files (uploads)
+# Media files
 media/
-media_backup/
 
 # Static files
 staticfiles/
@@ -145,9 +144,6 @@ staticfiles/
 .env
 .env.local
 .env.production
-
-# Docker
-.dockerignore
 
 # IDE
 .vscode/
@@ -160,22 +156,35 @@ staticfiles/
 .DS_Store
 Thumbs.db
 
-# Backup files
-*.backup
-*.bak
+# Служебные скрипты и файлы
+server_import_script.py
+import_to_server.py
+migrate_to_postgres.py
+fix_image_orientation.py
+fix_permissions.sh
+fix_server.sh
+update_video.py
+check_portfolio.py
+deploy_https.sh
+
+# JSON файлы с данными
+*.json
+!package.json
+!package-lock.json
+
+# Резервные копии
+media_backup/
+server_media_backup/
+
+# Временные файлы
 *.tmp
+*.temp
+temp/
+tmp/
 
-# Export files
-*_export.json
-
-# Database
-*.sqlite3
-*.db
-
-# Logs
+# Логи
 logs/
 *.log
 
-# Temporary files
-temp/
-tmp/ 
+# Docker
+.dockerignore 
