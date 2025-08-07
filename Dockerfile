@@ -21,7 +21,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Создаем пользователя для безопасности
-RUN useradd --create-home --shell /bin/bash app && chown -R app:app /app
+RUN useradd --create-home --shell /bin/bash app
+
+# Устанавливаем правильные права доступа
+RUN chown -R app:app /app
+RUN chmod -R 755 /app
+
+# Переключаемся на пользователя app
 USER app
 
 # Собираем статические файлы
@@ -31,4 +37,4 @@ RUN python manage.py collectstatic --noinput
 EXPOSE 8000
 
 # Команда для запуска
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "tsz2.wsgi:application"] 
+CMD ["sh", "-c", "python manage.py migrate && gunicorn --bind 0.0.0.0:8000 tsz2.wsgi:application"] 

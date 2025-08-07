@@ -3,37 +3,40 @@ version: '3.8'
 services:
   db:
     image: postgres:15
+    environment:
+      POSTGRES_DB: tsz2_db
+      POSTGRES_USER: tsz2_user
+      POSTGRES_PASSWORD: tsz2_password
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=tsz30_db
-      - POSTGRES_USER=tsz30_user
-      - POSTGRES_PASSWORD=tsz30_password
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U tsz30_user -d tsz30_db"]
+      test: ["CMD-SHELL", "pg_isready -U tsz2_user -d tsz2_db"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   web:
     build: .
-    command: >
-      sh -c "python manage.py migrate &&
-             python manage.py collectstatic --noinput &&
-             gunicorn --bind 0.0.0.0:8000 tsz2.wsgi:application"
-    volumes:
-      - .:/app
-      - static_volume:/app/staticfiles
-      - media_volume:/app/media
-    ports:
-      - "8000:8000"
     environment:
+      - DATABASE_URL=postgresql://tsz2_user:tsz2_password@db:5432/tsz2_db
+      - SECRET_KEY=your-secret-key-here
       - DEBUG=False
-      - DATABASE_URL=postgres://tsz30_user:tsz30_password@db:5432/tsz30_db
-      - SECRET_KEY=your-secret-key-here-change-in-production
-      - ALLOWED_HOSTS=toisozvezdoi.kz,www.toisozvezdoi.kz,77.246.247.137,localhost,127.0.0.1
+      - ALLOWED_HOSTS=toisozvezdoi.kz,www.toisozvezdoi.kz,localhost,127.0.0.1
+      - CSRF_TRUSTED_ORIGINS=https://toisozvezdoi.kz,https://www.toisozvezdoi.kz
+      - STATIC_URL=/static/
+      - MEDIA_URL=/media/
+      - SECURE_SSL_REDIRECT=True
+      - SECURE_PROXY_SSL_HEADER=HTTP_X_FORWARDED_PROTO,https
+      - SESSION_COOKIE_SECURE=True
+      - CSRF_COOKIE_SECURE=True
+      - SECURE_HSTS_SECONDS=31536000
+      - SECURE_HSTS_INCLUDE_SUBDOMAINS=True
+      - SECURE_HSTS_PRELOAD=True
+    volumes:
+      - media_files:/app/media
+      - static_files:/app/staticfiles
     depends_on:
       db:
         condition: service_healthy
@@ -41,19 +44,19 @@ services:
 
   nginx:
     image: nginx:alpine
-    volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - static_volume:/app/staticfiles
-      - media_volume:/app/media
     ports:
       - "80:80"
       - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - static_files:/app/staticfiles:ro
+      - media_files:/app/media:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - web
     restart: unless-stopped
 
 volumes:
   postgres_data:
-  static_volume:
-  media_volume: 
+  static_files:
+  media_files: 
