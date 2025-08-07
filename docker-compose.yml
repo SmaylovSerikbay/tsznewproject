@@ -4,15 +4,15 @@ services:
   db:
     image: postgres:15
     environment:
-      POSTGRES_DB: tsz2_db
-      POSTGRES_USER: tsz2_user
-      POSTGRES_PASSWORD: tsz2_password
+      POSTGRES_DB: tsz30_db
+      POSTGRES_USER: tsz30_user
+      POSTGRES_PASSWORD: tsz30_password
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U tsz2_user -d tsz2_db"]
+      test: ["CMD-SHELL", "pg_isready -U tsz30_user -d tsz30_db"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -20,7 +20,7 @@ services:
   web:
     build: .
     environment:
-      - DATABASE_URL=postgresql://tsz2_user:tsz2_password@db:5432/tsz2_db
+      - DATABASE_URL=postgresql://tsz30_user:tsz30_password@db:5432/tsz30_db
       - SECRET_KEY=your-secret-key-here
       - DEBUG=False
       - ALLOWED_HOSTS=toisozvezdoi.kz,www.toisozvezdoi.kz,localhost,127.0.0.1
