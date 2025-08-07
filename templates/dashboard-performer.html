@@ -1327,7 +1327,7 @@
                 <div class="flex flex-wrap gap-6 text-gray-600 text-sm mb-4">
                   <span class="flex items-center gap-2">
                     <i class="ri-map-pin-line text-primary"></i>
-                                               {{ user.city.name|default:"Не указан" if user.city else "Не указан" }}
+                                               {% if user.city %}{{ user.city.name }}{% else %}Не указан{% endif %}
                  </span>
                   <span class="flex items-center gap-2">
                     <i class="ri-star-fill text-yellow-500"></i>
