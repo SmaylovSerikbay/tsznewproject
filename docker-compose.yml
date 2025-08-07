@@ -33,7 +33,7 @@ services:
       - DEBUG=False
       - DATABASE_URL=postgres://tsz30_user:tsz30_password@db:5432/tsz30_db
       - SECRET_KEY=your-secret-key-here-change-in-production
-      - ALLOWED_HOSTS=localhost,127.0.0.1
+      - ALLOWED_HOSTS=toisozvezdoi.kz,www.toisozvezdoi.kz,77.246.247.137,localhost,127.0.0.1
     depends_on:
       db:
         condition: service_healthy
@@ -42,11 +42,13 @@ services:
   nginx:
     image: nginx:alpine
     volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
       - ./nginx.conf:/etc/nginx/nginx.conf
       - static_volume:/app/staticfiles
       - media_volume:/app/media
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       - web
     restart: unless-stopped
