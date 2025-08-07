@@ -1327,7 +1327,7 @@
                 <div class="flex flex-wrap gap-6 text-gray-600 text-sm mb-4">
                   <span class="flex items-center gap-2">
                     <i class="ri-map-pin-line text-primary"></i>
-                   {{ user.city.name|default:"Не указан" }}
+                                               {{ user.city.name|default:"Не указан" if user.city else "Не указан" }}
                  </span>
                   <span class="flex items-center gap-2">
                     <i class="ri-star-fill text-yellow-500"></i>
@@ -1335,7 +1335,7 @@
                  </span>
                   <span class="flex items-center gap-2">
                     <i class="ri-user-star-line text-primary"></i>
-                   {{ user.service_type.name|default:"Не указана" }}
+                                               {{ user.service_type.name|default:"Не указана" if user.service_type else "Не указана" }}
                  </span>
                   </div>
                 <button onclick="openEditProfileModal()" class="bg-primary text-white px-5 py-2 rounded-lg hover:bg-primary-dark transition-colors">
