@@ -1,83 +1,93 @@
-<!-- Add/Edit Tariff Modal -->
-<div id="tariffModal" class="modal">
-  <div class="modal-content">
-    <button class="modal-close" onclick="closeModal('tariffModal')">
-      <i class="ri-close-line"></i>
-    </button>
-    <div class="modal-header">
-      <h2 class="modal-title" id="tariffModalTitle">Добавить тариф</h2>
+<!-- Tariff Modal -->
+<div id="tariffModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center p-6 border-b border-gray-200">
+      <h2 class="text-xl font-semibold text-gray-900">Управление тарифами</h2>
+      <button class="text-gray-400 hover:text-gray-600 transition-colors" onclick="closeTariffModal()">
+        <i class="ri-close-line text-2xl"></i>
+      </button>
     </div>
-    <form id="tariffForm" action="{% url 'main:manage_tariff' %}" method="POST">
-      {% csrf_token %}
-      <input type="hidden" name="tariff_id" id="tariffId">
-      <div class="form-group">
-        <label class="form-label">Название услуги</label>
-        <input type="text" class="form-input" name="name" id="tariffName" required>
+    
+    <div class="p-6">
+      <div class="mb-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Ваши тарифы</h3>
+        <div class="space-y-4">
+          <div class="bg-gray-50 rounded-lg p-4">
+            <div class="flex justify-between items-center">
+              <div>
+                <h4 class="font-medium text-gray-900">Базовый тариф</h4>
+                <p class="text-sm text-gray-600">Стандартные услуги</p>
+              </div>
+              <div class="text-right">
+                <p class="font-semibold text-gray-900">50,000 ₸</p>
+                <p class="text-sm text-gray-500">за мероприятие</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-blue-50 rounded-lg p-4">
+            <div class="flex justify-between items-center">
+              <div>
+                <h4 class="font-medium text-gray-900">Премиум тариф</h4>
+                <p class="text-sm text-gray-600">Расширенные услуги</p>
+              </div>
+              <div class="text-right">
+                <p class="font-semibold text-gray-900">100,000 ₸</p>
+                <p class="text-sm text-gray-500">за мероприятие</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-green-50 rounded-lg p-4">
+            <div class="flex justify-between items-center">
+              <div>
+                <h4 class="font-medium text-gray-900">VIP тариф</h4>
+                <p class="text-sm text-gray-600">Премиум услуги</p>
+              </div>
+              <div class="text-right">
+                <p class="font-semibold text-gray-900">200,000 ₸</p>
+                <p class="text-sm text-gray-500">за мероприятие</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="form-group" style="margin-top: 20px;">
-        <label class="form-label">Стоимость (₸)</label>
-        <input type="number" class="form-input" name="price" id="tariffPrice" min="0" required>
+      
+      <div class="border-t border-gray-200 pt-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Добавить новый тариф</h3>
+        <form class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Название тарифа</label>
+            <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Введите название тарифа">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Описание</label>
+            <textarea rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Описание услуг"></textarea>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Цена (₸)</label>
+            <input type="number" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0">
+          </div>
+          
+          <div class="flex justify-end space-x-3">
+            <button type="button" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors" onclick="closeTariffModal()">
+              Отмена
+            </button>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Добавить тариф
+            </button>
+          </div>
+        </form>
       </div>
-      <div class="form-group" style="margin-top: 20px;">
-        <label class="form-label">Описание</label>
-        <textarea class="form-input" name="description" id="tariffDescription" rows="4"></textarea>
-      </div>
-      <div class="form-footer" style="margin-top: 24px;">
-        <button type="submit" class="btn accent">Сохранить</button>
-      </div>
-    </form>
+    </div>
   </div>
 </div>
 
 <script>
-function openTariffModal(tariffId = null) {
-  const modal = document.getElementById('tariffModal');
-  const title = document.getElementById('tariffModalTitle');
-  const form = document.getElementById('tariffForm');
-  const idInput = document.getElementById('tariffId');
-  const nameInput = document.getElementById('tariffName');
-  const priceInput = document.getElementById('tariffPrice');
-  const descriptionInput = document.getElementById('tariffDescription');
-
-  // Reset form
-  form.reset();
-  idInput.value = '';
-
-  if (tariffId) {
-    // Edit mode
-    title.textContent = 'Изменить тариф';
-    fetch(`/tariff/${tariffId}/edit/`)
-      .then(response => response.json())
-      .then(data => {
-        idInput.value = data.id;
-        nameInput.value = data.name;
-        priceInput.value = data.price;
-        descriptionInput.value = data.description || '';
-      })
-      .catch(error => {
-        console.error('Error fetching tariff data:', error);
-        alert('Произошла ошибка при загрузке данных тарифа');
-        closeModal('tariffModal');
-      });
-  } else {
-    // Add mode
-    title.textContent = 'Добавить тариф';
-  }
-
-  openModal('tariffModal');
-}
-
-function editTariff(tariffId) {
-  openTariffModal(tariffId);
-}
-
-// Reset form when modal is closed
 function closeTariffModal() {
-  document.getElementById('tariffForm').reset();
-  document.getElementById('tariffId').value = '';
-  closeModal('tariffModal');
+  const modal = document.getElementById('tariffModal');
+  modal.classList.add('hidden');
 }
-
-// Override the close button click handler
-document.querySelector('#tariffModal .modal-close').onclick = closeTariffModal;
 </script> 
