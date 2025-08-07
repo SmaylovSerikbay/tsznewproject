@@ -90,13 +90,11 @@
                                 type="email" 
                                 id="email" 
                                 name="email" 
-                                value="{{ form.email.value|default:user.email }}"
+                                value="{{ user.email }}"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="your@email.com"
                             >
-                            {% if form.email.errors %}
-                                <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
-                            {% endif %}
+
                 </div>
 
                         <div>
@@ -107,7 +105,7 @@
                                 type="tel" 
                                 id="phone_number" 
                                 name="phone_number" 
-                                value="{{ form.phone_number.value|default:user.phone_number }}"
+                                value="{{ user.phone_number }}"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="+7 (777) 777-77-77"
                                 readonly
@@ -131,9 +129,7 @@
                                     </option>
                         {% endfor %}
                     </select>
-                            {% if form.city.errors %}
-                                <p class="mt-1 text-sm text-red-600">{{ form.city.errors.0 }}</p>
-                            {% endif %}
+
             </div>
 
             {% if user.user_type == 'performer' %}
@@ -153,9 +149,7 @@
                                     </option>
                         {% endfor %}
                     </select>
-                            {% if form.service_type.errors %}
-                                <p class="mt-1 text-sm text-red-600">{{ form.service_type.errors.0 }}</p>
-                            {% endif %}
+
                         </div>
                         {% endif %}
                     </div>
@@ -174,10 +168,8 @@
                             rows="4"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Расскажите о себе, своем опыте и специализации..."
-                        >{{ form.bio.value|default:user.bio }}</textarea>
-                        {% if form.bio.errors %}
-                            <p class="mt-1 text-sm text-red-600">{{ form.bio.errors.0 }}</p>
-                        {% endif %}
+                        >{{ user.bio }}</textarea>
+
                     </div>
                 </div>
 
@@ -198,9 +190,7 @@
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
                         <p class="mt-1 text-sm text-gray-500">Выберите несколько фотографий для портфолио</p>
-                        {% if form.portfolio_photos.errors %}
-                            <p class="mt-1 text-sm text-red-600">{{ form.portfolio_photos.errors.0 }}</p>
-                        {% endif %}
+
                 </div>
 
                     <!-- Existing Portfolio Photos -->
