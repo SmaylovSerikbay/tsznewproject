@@ -1,28 +1,153 @@
-# Django
-*.log
-*.pot
-*.pyc
+# Byte-compiled / optimized / DLL files
 __pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
 local_settings.py
 db.sqlite3
-db.sqlite3-journal
+db.sqlite3.backup
 
-# Если используется PostgreSQL
-*.psql
+# Flask stuff:
+instance/
+.webassets-cache
 
-# Если используется MySQL
-*.mysql
+# Scrapy stuff:
+.scrapy
 
-# Media files (загруженные пользователями)
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
+#   However, in case of collaboration, if having platform-specific dependencies or dependencies
+#   having no cross-platform support, pipenv may install dependencies that don't work, or not
+#   install all needed dependencies.
+#Pipfile.lock
+
+# PEP 582; used by e.g. github.com/David-OConnor/pyflow
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3.backup
+
+# Media files (uploads)
 media/
+media_backup/
 
-# Static files (собранные)
+# Static files
 staticfiles/
 
-# Virtual environment
-venv/
-env/
-ENV/
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Docker
+.dockerignore
 
 # IDE
 .vscode/
@@ -35,41 +160,22 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# Environment variables
-.env
-.env.local
-.env.production
-
 # Backup files
-*.bak
 *.backup
-
-# Temporary files
+*.bak
 *.tmp
-*.temp
 
-# Coverage reports
-htmlcov/
-.coverage
-.coverage.*
+# Export files
+*_export.json
 
-# Test cache
-.pytest_cache/
-
-# Node modules (если используется фронтенд)
-node_modules/
-
-# Compiled CSS/JS
-*.css.map
-*.js.map
+# Database
+*.sqlite3
+*.db
 
 # Logs
 logs/
 *.log
 
-# Database migrations (опционально - раскомментировать если нужно)
-# main/migrations/
-
-# Local development settings
-local_settings.py
-settings_local.py 
+# Temporary files
+temp/
+tmp/ 

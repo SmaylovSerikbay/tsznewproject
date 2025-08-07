@@ -1,26 +1,57 @@
-version: '3.3'
+version: '3.8'
 
 services:
-  web:
-    build: .
-    command: python manage.py runserver 0.0.0.0:8000
-    volumes:
-      - .:/app
-    ports:
-      - "8000:8000"
-    depends_on:
-      - db
-    environment:
-      - DATABASE_URL=postgresql://tsz2user:password123@db:5432/tsz2
-
   db:
-    image: postgres:13
+    image: postgres:15
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=tsz2
-      - POSTGRES_USER=tsz2user
-      - POSTGRES_PASSWORD=password123
+      - POSTGRES_DB=tsz30_db
+      - POSTGRES_USER=tsz30_user
+      - POSTGRES_PASSWORD=tsz30_password
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tsz30_user -d tsz30_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn --bind 0.0.0.0:8000 tsz2.wsgi:application"
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=False
+      - DATABASE_URL=postgres://tsz30_user:tsz30_password@db:5432/tsz30_db
+      - SECRET_KEY=your-secret-key-here-change-in-production
+      - ALLOWED_HOSTS=localhost,127.0.0.1
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+    restart: unless-stopped
 
 volumes:
-  postgres_data: 
+  postgres_data:
+  static_volume:
+  media_volume: 

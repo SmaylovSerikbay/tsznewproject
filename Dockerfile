@@ -1,9 +1,34 @@
-FROM python:3.8
+# Используем официальный Python образ
+FROM python:3.11-slim
 
+# Устанавливаем системные зависимости
+RUN apt-get update && apt-get install -y \
+    gcc \
+    postgresql-client \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Устанавливаем рабочую директорию
 WORKDIR /app
 
+# Копируем requirements.txt
+COPY requirements.txt .
+
+# Устанавливаем Python зависимости
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Копируем код приложения
 COPY . .
 
-RUN pip install -r requirements.txt
+# Создаем пользователя для безопасности
+RUN useradd --create-home --shell /bin/bash app && chown -R app:app /app
+USER app
 
-EXPOSE 8000 
+# Собираем статические файлы
+RUN python manage.py collectstatic --noinput
+
+# Открываем порт
+EXPOSE 8000
+
+# Команда для запуска
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "tsz2.wsgi:application"] 
