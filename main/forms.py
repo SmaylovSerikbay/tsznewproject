@@ -19,18 +19,22 @@ class OrderForm(forms.ModelForm):
     class Meta:
         model = Order
         fields = ['title', 'event_type', 'event_date', 'venue', 'guest_count', 
-                 'description', 'budget']
+                 'description', 'budget', 'services']
         widgets = {
             'event_date': forms.DateInput(attrs={'type': 'date'}),
             'description': forms.Textarea(attrs={'rows': 4}),
             'budget': forms.NumberInput(attrs={'min': '0', 'step': '10000'}),
             'guest_count': forms.NumberInput(attrs={'min': '1'}),
+            'services': forms.HiddenInput(),  # Скрытое поле для services
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Делаем поле description необязательным
         self.fields['description'].required = False
+        
+        # Делаем поле services необязательным (оно будет заполнено в view)
+        self.fields['services'].required = False
         
         # Получаем города из базы данных
         from .models import City

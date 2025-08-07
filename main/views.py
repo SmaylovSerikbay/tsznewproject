@@ -970,21 +970,24 @@ def create_order_request(request):
             city_name = form.cleaned_data.get('city')
             order.city = city_name
             
+            # Обрабатываем services
             services = request.POST.get('services', '[]')
             print(f"DEBUG create_order_request: services from POST = {services}")
             print(f"DEBUG create_order_request: services.getlist = {request.POST.getlist('services')}")
-            try:
-                # Если services приходит как JSON массив
-                if services.startswith('['):
-                    order.services = json.loads(services)
-                else:
-                    # Если services приходит как список значений из формы
-                    services_list = request.POST.getlist('services')
-                    order.services = services_list
-            except json.JSONDecodeError:
-                # Если JSON не валидный, берем как список
-                services_list = request.POST.getlist('services')
+            
+            # Если services приходит как список значений из формы
+            services_list = request.POST.getlist('services')
+            if services_list:
                 order.services = services_list
+            else:
+                # Если services приходит как JSON массив
+                try:
+                    if services.startswith('['):
+                        order.services = json.loads(services)
+                    else:
+                        order.services = []
+                except json.JSONDecodeError:
+                    order.services = []
             
             print(f"DEBUG create_order_request: final services = {order.services}")
             
