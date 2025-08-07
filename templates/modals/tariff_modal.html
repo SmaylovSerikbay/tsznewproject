@@ -12,15 +12,15 @@
       <input type="hidden" name="tariff_id" id="tariffId">
       <div class="form-group">
         <label class="form-label">Название услуги</label>
-        <input type="text" class="form-input" name="name" id="tariffName" required>
+        <input type="text" class="form-input" name="name" id="tariffName" required placeholder="Введите название услуги">
       </div>
       <div class="form-group" style="margin-top: 20px;">
         <label class="form-label">Стоимость (₸)</label>
-        <input type="number" class="form-input" name="price" id="tariffPrice" min="0" required>
+        <input type="number" class="form-input" name="price" id="tariffPrice" min="0" required placeholder="Введите стоимость">
       </div>
       <div class="form-group" style="margin-top: 20px;">
         <label class="form-label">Описание</label>
-        <textarea class="form-input" name="description" id="tariffDescription" rows="4"></textarea>
+        <textarea class="form-input" name="description" id="tariffDescription" rows="4" placeholder="Введите описание услуги"></textarea>
       </div>
       <div class="form-footer" style="margin-top: 24px;">
         <button type="submit" class="btn accent">Сохранить</button>
@@ -28,6 +28,150 @@
     </form>
   </div>
 </div>
+
+<style>
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  color: #374151;
+  background: #f3f4f6;
+}
+
+.modal-header {
+  margin-bottom: 24px;
+  padding-right: 40px;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #1f2937;
+  background: white;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-input::placeholder {
+  color: #9ca3af;
+}
+
+textarea.form-input {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn.accent {
+  background: #dc2626;
+  color: white;
+  box-shadow: 0 4px 6px rgba(220, 38, 38, 0.3);
+}
+
+.btn.accent:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 8px rgba(220, 38, 38, 0.4);
+}
+
+.form-footer {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.form-footer .btn {
+  flex: 1;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    padding: 20px;
+  }
+}
+</style>
 
 <script>
 function openTariffModal(tariffId = null) {
