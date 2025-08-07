@@ -82,7 +82,7 @@
               {% for service_type in service_types %}
                 <label class="flex items-center">
                   <input type="checkbox" name="service_types" value="{{ service_type.id }}" 
-                         {% if service_type in user.service_types.all %}checked{% endif %}
+                         {% if service_type.code in user.services %}checked{% endif %}
                          class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                   <span class="text-sm text-gray-700">{{ service_type.name }}</span>
                 </label>

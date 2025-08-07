@@ -392,11 +392,16 @@ def profile_settings(request):
         # Update performer-specific fields if applicable
         if request.user.user_type == 'performer':
             request.user.company_name = request.POST.get('company_name', '')
-            service_type_code = request.POST.get('service_type', '')
-            if service_type_code:
+            
+            # Обрабатываем типы услуг (может быть несколько)
+            service_types_ids = request.POST.getlist('service_types')
+            if service_types_ids:
                 try:
-                    service_type_obj = ServiceType.objects.get(code=service_type_code)
-                    request.user.service_type = service_type_obj
+                    # Берем первый выбранный тип услуги как основной
+                    primary_service_type = ServiceType.objects.get(id=service_types_ids[0])
+                    request.user.service_type = primary_service_type
+                    # Сохраняем все выбранные типы услуг в JSON поле
+                    request.user.services = [ServiceType.objects.get(id=st_id).code for st_id in service_types_ids]
                 except ServiceType.DoesNotExist:
                     error_message = 'Выберите корректную специализацию исполнителя!'
                     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -409,9 +414,15 @@ def profile_settings(request):
                     return render(request, 'profile_settings.html', {'user': request.user})
             else:
                 request.user.service_type = None
+                request.user.services = []
+            
             request.user.bio = request.POST.get('bio', '')
-            request.user.services_description = request.POST.get('services_description', '')
-            request.user.experience = request.POST.get('experience', '')
+            # Обрабатываем опыт работы
+            experience_years = request.POST.get('experience_years', '0')
+            try:
+                request.user.experience_years = int(experience_years) if experience_years else 0
+            except ValueError:
+                request.user.experience_years = 0
         
         # Update notification settings
         request.user.email_notifications = request.POST.get('email_notifications') == 'on'
