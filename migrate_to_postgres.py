@@ -7,42 +7,38 @@
 import os
 import sys
 import django
-from django.core.management import execute_from_command_line
-from django.conf import settings
 import json
-from pathlib import Path
-
-# Добавляем путь к проекту
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+import shutil
+from datetime import datetime
 
 # Настройка Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tsz2.settings')
 django.setup()
 
-from main.models import *
-from django.contrib.auth.models import User
-from django.core.files import File
-from django.core.files.temp import NamedTemporaryFile
-import shutil
+from main.models import User, City, ServiceType, Portfolio, Order
 
 def backup_sqlite_data():
     """Создает резервную копию SQLite базы данных"""
+    print("💾 Создание резервной копии SQLite базы данных...")
+    
     if os.path.exists('db.sqlite3'):
-        shutil.copy2('db.sqlite3', 'db.sqlite3.backup')
-        print("✅ Резервная копия SQLite создана: db.sqlite3.backup")
+        backup_name = f'db.sqlite3.backup.{datetime.now().strftime("%Y%m%d_%H%M%S")}'
+        shutil.copy2('db.sqlite3', backup_name)
+        print(f"✅ Резервная копия создана: {backup_name}")
 
 def export_data_to_json():
-    """Экспортирует данные в JSON файлы"""
+    """Экспортирует данные из Django моделей в JSON файлы"""
     print("📤 Экспорт данных в JSON...")
     
     # Экспорт городов
     cities_data = []
     for city in City.objects.all():
-        cities_data.append({
+        city_data = {
             'name': city.name,
             'is_active': city.is_active,
             'created_at': city.created_at.isoformat() if city.created_at else None
-        })
+        }
+        cities_data.append(city_data)
     
     with open('cities_export.json', 'w', encoding='utf-8') as f:
         json.dump(cities_data, f, ensure_ascii=False, indent=2)
@@ -50,7 +46,7 @@ def export_data_to_json():
     # Экспорт типов услуг
     service_types_data = []
     for service_type in ServiceType.objects.all():
-        service_types_data.append({
+        service_type_data = {
             'code': service_type.code,
             'name': service_type.name,
             'description': service_type.description,
@@ -58,7 +54,8 @@ def export_data_to_json():
             'is_active': service_type.is_active,
             'sort_order': service_type.sort_order,
             'created_at': service_type.created_at.isoformat() if service_type.created_at else None
-        })
+        }
+        service_types_data.append(service_type_data)
     
     with open('service_types_export.json', 'w', encoding='utf-8') as f:
         json.dump(service_types_data, f, ensure_ascii=False, indent=2)
@@ -68,11 +65,11 @@ def export_data_to_json():
     for user in User.objects.all():
         user_data = {
             'username': user.username,
+            'email': user.email,
             'first_name': user.first_name,
             'last_name': user.last_name,
-            'email': user.email,
-            'user_type': user.user_type,
             'phone_number': user.phone_number,
+            'user_type': user.user_type,
             'is_phone_verified': user.is_phone_verified,
             'rating': user.rating,
             'company_name': user.company_name,
@@ -84,10 +81,10 @@ def export_data_to_json():
             'is_superuser': user.is_superuser,
             'is_active': user.is_active,
             'date_joined': user.date_joined.isoformat() if user.date_joined else None,
-            'last_login': user.last_login.isoformat() if user.last_login else None,
+            'last_login': user.last_login.isoformat() if user.last_login else None
         }
         
-        # Сохраняем профильное фото
+        # Сохраняем фото профиля
         if user.profile_photo:
             photo_path = user.profile_photo.path
             if os.path.exists(photo_path):

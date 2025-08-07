@@ -42,9 +42,31 @@ class TariffAdmin(admin.ModelAdmin):
     ordering = ('-created_at',)
 
 class PortfolioAdmin(admin.ModelAdmin):
-    list_display = ('user', 'image', 'created_at')
-    list_filter = ('created_at',)
-    search_fields = ('user__username',)
+    list_display = ('user', 'media_type', 'title', 'duration_display', 'file_size_display', 'created_at')
+    list_filter = ('media_type', 'created_at')
+    search_fields = ('user__username', 'title', 'description')
+    readonly_fields = ('duration', 'file_size', 'thumbnail')
+    
+    fieldsets = (
+        ('Основная информация', {
+            'fields': ('user', 'media_type', 'title', 'description')
+        }),
+        ('Медиа файлы', {
+            'fields': ('image', 'video', 'thumbnail')
+        }),
+        ('Техническая информация', {
+            'fields': ('duration', 'file_size', 'created_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def duration_display(self, obj):
+        return obj.get_duration_display()
+    duration_display.short_description = 'Длительность'
+    
+    def file_size_display(self, obj):
+        return obj.get_file_size_display()
+    file_size_display.short_description = 'Размер файла'
 
 class BusyDateAdmin(admin.ModelAdmin):
     list_display = ('user', 'date')

@@ -120,15 +120,43 @@
                     <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                         <i class="ri-image-line mr-2 text-blue-500"></i>
                         Портфолио
-                        <span class="ml-2 text-sm text-gray-500">({{ profile_user.portfolio.all|length }} фото)</span>
+                        <span class="ml-2 text-sm text-gray-500">({{ profile_user.portfolio.all|length }} элементов)</span>
                     </h2>
                     <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3" id="portfolioGrid">
-                        {% for photo in profile_user.portfolio.all %}
+                        {% for item in profile_user.portfolio.all %}
                         <div class="portfolio-item aspect-square rounded-lg overflow-hidden bg-gray-200 cursor-pointer group relative {% if forloop.counter > 15 %}hidden{% endif %}" onclick="openPortfolioModal({{ forloop.counter0 }})">
-                            <img src="{{ photo.image.url }}" alt="Портфолио" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
-                                <i class="ri-zoom-in-line text-white text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></i>
-                            </div>
+                            {% if item.media_type == 'video' %}
+                                {% if item.thumbnail %}
+                                    <img src="{{ item.thumbnail.url }}" alt="Превью видео" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                {% else %}
+                                    <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                                        <i class="ri-video-line text-gray-400 text-2xl"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
+                                    <i class="ri-play-fill text-white text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></i>
+                                </div>
+                                {% if item.duration %}
+                                    <div class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                                        {{ item.get_duration_display }}
+                                    </div>
+                                {% else %}
+                                    <div class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                                        Видео
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                {% if item.image %}
+                                    <img src="{{ item.image.url }}" alt="Портфолио" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                {% else %}
+                                    <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                                        <i class="ri-image-line text-gray-400 text-2xl"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
+                                    <i class="ri-zoom-in-line text-white text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></i>
+                                </div>
+                            {% endif %}
                         </div>
                         {% endfor %}
                     </div>
@@ -265,12 +293,14 @@
             <i class="ri-arrow-right-s-line text-2xl"></i>
         </button>
         
-        <!-- Photo Container -->
+        <!-- Media Container -->
         <div class="max-w-4xl max-h-full flex items-center justify-center">
-            <img id="modalPhoto" src="" alt="Портфолио" class="max-w-full max-h-full object-contain">
+            <div id="modalMedia" class="max-w-full max-h-full">
+                <!-- Content will be loaded dynamically -->
+            </div>
         </div>
         
-        <!-- Photo Counter -->
+        <!-- Media Counter -->
         <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white bg-black bg-opacity-50 px-4 py-2 rounded-full">
             <span id="photoCounter">1</span> / <span id="totalPhotos">{{ profile_user.portfolio.all|length }}</span>
         </div>
@@ -279,26 +309,31 @@
 
 <script>
 let currentPhotoIndex = 0;
-const photos = [];
+const portfolioItems = [];
 let visiblePhotos = 15;
 
-// Заполняем массив фотографий
-{% for photo in profile_user.portfolio.all %}
-    photos.push("{{ photo.image.url }}");
+// Заполняем массив элементов портфолио
+{% for item in profile_user.portfolio.all %}
+    portfolioItems.push({
+        id: {{ item.id }},
+        mediaType: "{{ item.media_type }}",
+        title: {% if item.title %}"{{ item.title|escapejs }}"{% else %}null{% endif %},
+        description: {% if item.description %}"{{ item.description|escapejs }}"{% else %}null{% endif %}
+    });
 {% endfor %}
 
 function loadMorePhotos() {
     const portfolioItems = document.querySelectorAll('.portfolio-item');
     const loadMoreBtn = document.getElementById('loadMoreBtn');
     
-    // Показываем следующие 15 фотографий
+    // Показываем следующие 15 элементов
     for (let i = visiblePhotos; i < Math.min(visiblePhotos + 15, portfolioItems.length); i++) {
         portfolioItems[i].classList.remove('hidden');
     }
     
     visiblePhotos += 15;
     
-    // Скрываем кнопку если все фотографии показаны
+    // Скрываем кнопку если все элементы показаны
     if (visiblePhotos >= portfolioItems.length) {
         loadMoreBtn.style.display = 'none';
     }
@@ -306,7 +341,7 @@ function loadMorePhotos() {
 
 function openPortfolioModal(index) {
     currentPhotoIndex = index;
-    updateModalPhoto();
+    loadPortfolioItem(index);
     document.getElementById('portfolioModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 }
@@ -314,21 +349,68 @@ function openPortfolioModal(index) {
 function closePortfolioModal() {
     document.getElementById('portfolioModal').classList.add('hidden');
     document.body.style.overflow = 'auto';
+    
+    // Останавливаем видео если оно воспроизводится
+    const video = document.querySelector('#modalMedia video');
+    if (video) {
+        video.pause();
+    }
 }
 
-function updateModalPhoto() {
-    document.getElementById('modalPhoto').src = photos[currentPhotoIndex];
-    document.getElementById('photoCounter').textContent = currentPhotoIndex + 1;
+function loadPortfolioItem(index) {
+    const item = portfolioItems[index];
+    const modalMedia = document.getElementById('modalMedia');
+    const counter = document.getElementById('photoCounter');
+    
+    counter.textContent = index + 1;
+    
+    // Загружаем контент через AJAX
+    fetch(`/portfolio/${item.id}/view/`)
+        .then(response => response.json())
+        .then(data => {
+            let content = '';
+            
+            if (item.mediaType === 'video') {
+                content = `
+                    <video controls class="max-w-full max-h-full object-contain rounded-lg">
+                        <source src="${data.video_url}" type="video/mp4">
+                        Ваш браузер не поддерживает видео.
+                    </video>
+                `;
+            } else {
+                content = `
+                    <img src="${data.image_url}" alt="Портфолио" class="max-w-full max-h-full object-contain rounded-lg">
+                `;
+            }
+            
+            // Добавляем заголовок и описание
+            if (data.title || data.description) {
+                content += '<div class="text-white text-center mt-4">';
+                if (data.title) {
+                    content += `<div class="text-lg font-medium">${data.title}</div>`;
+                }
+                if (data.description) {
+                    content += `<div class="text-sm opacity-75 mt-1">${data.description}</div>`;
+                }
+                content += '</div>';
+            }
+            
+            modalMedia.innerHTML = content;
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки портфолио:', error);
+            modalMedia.innerHTML = '<div class="text-white text-center">Ошибка загрузки</div>';
+        });
 }
 
 function nextPhoto() {
-    currentPhotoIndex = (currentPhotoIndex + 1) % photos.length;
-    updateModalPhoto();
+    currentPhotoIndex = (currentPhotoIndex + 1) % portfolioItems.length;
+    loadPortfolioItem(currentPhotoIndex);
 }
 
 function previousPhoto() {
-    currentPhotoIndex = (currentPhotoIndex - 1 + photos.length) % photos.length;
-    updateModalPhoto();
+    currentPhotoIndex = (currentPhotoIndex - 1 + portfolioItems.length) % portfolioItems.length;
+    loadPortfolioItem(currentPhotoIndex);
 }
 
 // Keyboard navigation

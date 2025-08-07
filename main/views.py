@@ -1361,12 +1361,22 @@ def user_logout(request):
 def add_portfolio(request):
     if request.method == 'POST':
         form = PortfolioForm(request.POST, request.FILES)
-        files = request.FILES.getlist('photos')
         
-        for f in files:
-            Portfolio.objects.create(user=request.user, image=f)
+        if form.is_valid():
+            portfolio = form.save(commit=False)
+            portfolio.user = request.user
+            portfolio.save()
             
-        messages.success(request, 'Фотографии успешно добавлены в портфолио')
+            media_type = portfolio.media_type
+            if media_type == 'video':
+                messages.success(request, 'Видео успешно добавлено в портфолио')
+            else:
+                messages.success(request, 'Фотография успешно добавлена в портфолио')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+        
         return redirect('main:dashboard')
     
     return redirect('main:dashboard')
@@ -1417,10 +1427,16 @@ def manage_calendar(request):
 
 @login_required
 def delete_portfolio_photo(request, photo_id):
-    photo = get_object_or_404(Portfolio, id=photo_id, user=request.user)
+    portfolio = get_object_or_404(Portfolio, id=photo_id, user=request.user)
     if request.method == 'POST':
-        photo.delete()
-        messages.success(request, 'Фото успешно удалено')
+        media_type = portfolio.media_type
+        portfolio.delete()
+        
+        if media_type == 'video':
+            messages.success(request, 'Видео успешно удалено')
+        else:
+            messages.success(request, 'Фотография успешно удалена')
+            
     return redirect('main:dashboard')
 
 @login_required
@@ -2357,3 +2373,39 @@ def cleanup_past_busy_dates():
 def test_mobile(request):
     """Тестовая страница для проверки мобильного меню"""
     return render(request, 'test_mobile.html')
+
+@login_required
+def view_portfolio_item(request, item_id):
+    """AJAX view для просмотра элемента портфолио"""
+    portfolio = get_object_or_404(Portfolio, id=item_id)
+    
+    # Проверяем права доступа (только владелец или публичный просмотр)
+    if portfolio.user != request.user:
+        # Для публичного просмотра можно добавить дополнительные проверки
+        pass
+    
+    data = {
+        'id': portfolio.id,
+        'media_type': portfolio.media_type,
+        'title': portfolio.title or '',
+        'description': portfolio.description or '',
+        'duration': portfolio.duration,
+        'file_size': portfolio.file_size,
+    }
+    
+    if portfolio.media_type == 'video':
+        if portfolio.video:
+            data['video_url'] = portfolio.video.url
+        else:
+            data['video_url'] = None
+        if portfolio.thumbnail:
+            data['thumbnail_url'] = portfolio.thumbnail.url
+        else:
+            data['thumbnail_url'] = None
+    else:
+        if portfolio.image:
+            data['image_url'] = portfolio.image.url
+        else:
+            data['image_url'] = None
+    
+    return JsonResponse(data)

@@ -7,6 +7,9 @@ from PIL import Image
 import os
 from io import BytesIO
 from django.core.files import File
+import subprocess
+import tempfile
+from pathlib import Path
 
 class City(models.Model):
     """Модель городов"""
@@ -105,6 +108,7 @@ class User(AbstractUser):
 
     @property
     def completed_orders_count(self):
+        """Количество завершенных заказов"""
         return self.orders_received.filter(status='completed').count()
 
     class Meta:
@@ -112,14 +116,36 @@ class User(AbstractUser):
         verbose_name_plural = 'Пользователи'
 
 class Portfolio(models.Model):
+    """Модель портфолио (фото и видео)"""
+    MEDIA_TYPES = (
+        ('image', 'Фото'),
+        ('video', 'Видео'),
+    )
+    
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='portfolio')
-    image = models.ImageField(upload_to='portfolio/')
+    media_type = models.CharField(max_length=10, choices=MEDIA_TYPES, default='image')
+    image = models.ImageField(upload_to='portfolio/', null=True, blank=True)
+    video = models.FileField(upload_to='portfolio/videos/', null=True, blank=True)
+    thumbnail = models.ImageField(upload_to='portfolio/thumbnails/', null=True, blank=True)
+    title = models.CharField(max_length=200, blank=True)
+    description = models.TextField(blank=True)
+    duration = models.IntegerField(null=True, blank=True, help_text="Длительность видео в секундах")
+    file_size = models.BigIntegerField(null=True, blank=True, help_text="Размер файла в байтах")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        # Сжимаем изображение перед сохранением
-        if self.image:
+        # Определяем тип медиа
+        if self.video and not hasattr(self, '_processing_video'):
+            self.media_type = 'video'
+            self._processing_video = True
+            self.compress_video()
+            delattr(self, '_processing_video')
+        elif self.image and not hasattr(self, '_processing_image'):
+            self.media_type = 'image'
+            self._processing_image = True
             self.compress_image()
+            delattr(self, '_processing_image')
+        
         super().save(*args, **kwargs)
 
     def compress_image(self, max_size=(1200, 1200), quality=85):
@@ -155,9 +181,53 @@ class Portfolio(models.Model):
         except Exception as e:
             print(f"Ошибка при сжатии изображения портфолио: {e}")
 
+    def compress_video(self, max_width=1280, max_height=720, max_bitrate='2M'):
+        """Сжимает видео портфолио"""
+        if not self.video:
+            return
+        
+        try:
+            # Получаем информацию о видео
+            video_path = self.video.path
+            if not os.path.exists(video_path):
+                return
+            
+            # Получаем размер файла
+            self.file_size = os.path.getsize(video_path)
+            
+            # Создаем простое превью (иконка видео)
+            # В будущем можно добавить создание превью через ffmpeg
+            self.save()
+            
+        except Exception as e:
+            print(f"Ошибка при обработке видео портфолио: {e}")
+
+    def get_duration_display(self):
+        """Возвращает длительность видео в формате MM:SS"""
+        if not self.duration:
+            return ""
+        minutes = self.duration // 60
+        seconds = self.duration % 60
+        return f"{minutes:02d}:{seconds:02d}"
+
+    def get_file_size_display(self):
+        """Возвращает размер файла в читаемом формате"""
+        if not self.file_size:
+            return ""
+        
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if self.file_size < 1024.0:
+                return f"{self.file_size:.1f} {unit}"
+            self.file_size /= 1024.0
+        return f"{self.file_size:.1f} TB"
+
+    def __str__(self):
+        media_type_display = self.get_media_type_display()
+        return f"{media_type_display} портфолио {self.user.username}"
+
     class Meta:
-        verbose_name = 'Фото портфолио'
-        verbose_name_plural = 'Фотографии портфолио'
+        verbose_name = 'Портфолио'
+        verbose_name_plural = 'Портфолио'
         ordering = ['-created_at']
 
 class PortfolioPhoto(models.Model):

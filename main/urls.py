@@ -31,6 +31,7 @@ urlpatterns = [
     # Portfolio management
     path('portfolio/add/', views.add_portfolio, name='add_portfolio'),
     path('portfolio/<int:photo_id>/delete/', views.delete_portfolio_photo, name='delete_portfolio_photo'),
+    path('portfolio/<int:item_id>/view/', views.view_portfolio_item, name='view_portfolio_item'),
     
     # Tariff management
     path('tariff/manage/', views.manage_tariff, name='manage_tariff'),

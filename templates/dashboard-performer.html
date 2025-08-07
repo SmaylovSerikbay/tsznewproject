@@ -1099,26 +1099,66 @@
             </div>
             <div class="flex gap-2 mt-4 md:mt-0">
               <button onclick="openModal('addPortfolioModal')" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors">
-                <i class="ri-image-line mr-2"></i>Добавить фото
-              </button>
-              <button onclick="alert('Функция добавления видео будет доступна позже')" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors">
-                <i class="ri-video-line mr-2"></i>Добавить видео
+                <i class="ri-add-line mr-2"></i>Добавить в портфолио
               </button>
             </div>
           </div>
           
           <!-- Portfolio Grid -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {% for photo in portfolio_photos %}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onclick="openPhotoModal('{{ photo.image.url }}')">
-              <div class="aspect-square overflow-hidden">
-                <img src="{{ photo.image.url }}" alt="Портфолио" class="w-full h-full object-cover">
+          {% for item in portfolio_photos %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onclick="openPortfolioModal('{{ item.id }}', '{{ item.media_type }}')">
+              <div class="aspect-square overflow-hidden relative">
+                {% if item.media_type == 'video' %}
+                  {% if item.thumbnail %}
+                    <img src="{{ item.thumbnail.url }}" alt="Превью видео" class="w-full h-full object-cover">
+                  {% else %}
+                    <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                      <i class="ri-video-line text-gray-400 text-4xl"></i>
+                    </div>
+                  {% endif %}
+                  <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="bg-black bg-opacity-50 rounded-full p-3">
+                      <i class="ri-play-fill text-white text-2xl"></i>
+                    </div>
+                  </div>
+                  {% if item.duration %}
+                    <div class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                      {{ item.get_duration_display }}
+                    </div>
+                  {% else %}
+                    <div class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                      Видео
+                    </div>
+                  {% endif %}
+                {% else %}
+                  {% if item.image %}
+                    <img src="{{ item.image.url }}" alt="Портфолио" class="w-full h-full object-cover">
+                  {% else %}
+                    <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                      <i class="ri-image-line text-gray-400 text-4xl"></i>
+                    </div>
+                  {% endif %}
+                {% endif %}
               </div>
               <div class="p-4">
-                <div class="text-sm font-medium text-gray-900 mb-2">Фото #{{ forloop.counter }}</div>
-                <form action="{% url 'main:delete_portfolio_photo' photo.id %}" method="POST" onclick="event.stopPropagation()">
+                <div class="text-sm font-medium text-gray-900 mb-2">
+                  {% if item.title and item.title.strip %}
+                    {{ item.title }}
+                  {% else %}
+                    {% if item.media_type == 'video' %}
+                      Видео #{{ forloop.counter }}
+                    {% else %}
+                      Фото #{{ forloop.counter }}
+                    {% endif %}
+                  {% endif %}
+                </div>
+                {% if item.description and item.description.strip %}
+                  <div class="text-xs text-gray-500 mb-2">{{ item.description|truncatechars:50 }}</div>
+                {% endif %}
+                <form action="{% url 'main:delete_portfolio_photo' item.id %}" method="POST" onclick="event.stopPropagation()">
                 {% csrf_token %}
-                  <button type="submit" onclick="return confirm('Удалить это фото?')" class="text-red-600 hover:text-red-900 text-sm font-medium">
+                  <button type="submit" onclick="return confirm('Удалить этот элемент портфолио?')" class="text-red-600 hover:text-red-900 text-sm font-medium">
                     <i class="ri-delete-bin-line mr-1"></i>Удалить
                 </button>
               </form>
@@ -1129,9 +1169,9 @@
               <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i class="ri-gallery-line text-gray-400 text-2xl"></i>
               </div>
-              <p class="text-gray-500 mb-4">Добавьте фото в ваше портфолио</p>
+              <p class="text-gray-500 mb-4">Добавьте фото или видео в ваше портфолио</p>
               <button onclick="openModal('addPortfolioModal')" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
-                <i class="ri-image-line mr-2"></i>Добавить первое фото
+                <i class="ri-add-line mr-2"></i>Добавить первое фото/видео
               </button>
             </div>
           {% endfor %}
@@ -1736,6 +1776,125 @@
 
     // Функции для работы с портфолио
     let photoViewerOpen = false;
+    let currentPortfolioIndex = 0;
+    let portfolioItems = [];
+
+    function openPortfolioModal(itemId, mediaType) {
+      // Получаем все элементы портфолио из текущей сетки
+      const portfolioGrid = document.querySelector('#portfolioTab .grid');
+      const items = portfolioGrid.querySelectorAll('[onclick*="openPortfolioModal"]');
+      
+      // Находим индекс текущего элемента
+      currentPortfolioIndex = Array.from(items).findIndex(item => 
+        item.getAttribute('onclick').includes(itemId)
+      );
+      
+      // Собираем данные о портфолио
+      portfolioItems = Array.from(items).map(item => {
+        const onclick = item.getAttribute('onclick');
+        const match = onclick.match(/openPortfolioModal\('([^']+)', '([^']+)'\)/);
+        return {
+          id: match[1],
+          mediaType: match[2]
+        };
+      });
+      
+      // Отображаем текущий элемент
+      showPortfolioItem(currentPortfolioIndex);
+      
+      // Показываем модальное окно
+      const modal = document.getElementById('portfolio-viewer-modal');
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function showPortfolioItem(index) {
+      if (index < 0 || index >= portfolioItems.length) return;
+      
+      currentPortfolioIndex = index;
+      const item = portfolioItems[index];
+      const content = document.getElementById('portfolio-content');
+      const counter = document.getElementById('portfolio-counter');
+      
+      // Обновляем счетчик
+      counter.textContent = `${index + 1} / ${portfolioItems.length}`;
+      
+      // Загружаем контент через AJAX
+      fetch(`/portfolio/${item.id}/view/`)
+        .then(response => response.json())
+        .then(data => {
+          if (item.mediaType === 'video') {
+            content.innerHTML = `
+              <video controls class="max-w-full max-h-full object-contain rounded-lg">
+                <source src="${data.video_url}" type="video/mp4">
+                Ваш браузер не поддерживает видео.
+              </video>
+              ${data.title ? `<div class="text-white text-center mt-4 text-lg font-medium">${data.title}</div>` : ''}
+              ${data.description ? `<div class="text-white text-center mt-2 text-sm opacity-75">${data.description}</div>` : ''}
+            `;
+          } else {
+            content.innerHTML = `
+              <img src="${data.image_url}" alt="Портфолио" class="max-w-full max-h-full object-contain rounded-lg">
+              ${data.title ? `<div class="text-white text-center mt-4 text-lg font-medium">${data.title}</div>` : ''}
+              ${data.description ? `<div class="text-white text-center mt-2 text-sm opacity-75">${data.description}</div>` : ''}
+            `;
+          }
+        })
+        .catch(error => {
+          console.error('Ошибка загрузки портфолио:', error);
+          content.innerHTML = '<div class="text-white text-center">Ошибка загрузки</div>';
+        });
+    }
+
+    function previousPortfolioItem() {
+      if (currentPortfolioIndex > 0) {
+        showPortfolioItem(currentPortfolioIndex - 1);
+      }
+    }
+
+    function nextPortfolioItem() {
+      if (currentPortfolioIndex < portfolioItems.length - 1) {
+        showPortfolioItem(currentPortfolioIndex + 1);
+      }
+    }
+
+    function closePortfolioViewer() {
+      const modal = document.getElementById('portfolio-viewer-modal');
+      modal.classList.add('hidden');
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+      
+      // Останавливаем видео если оно воспроизводится
+      const video = document.querySelector('#portfolio-content video');
+      if (video) {
+        video.pause();
+      }
+      
+      // Очищаем контент
+      document.getElementById('portfolio-content').innerHTML = '';
+    }
+
+    // Обработка клавиш для навигации
+    document.addEventListener('keydown', function(event) {
+      const modal = document.getElementById('portfolio-viewer-modal');
+      if (!modal.classList.contains('hidden')) {
+        if (event.key === 'Escape') {
+          closePortfolioViewer();
+        } else if (event.key === 'ArrowLeft') {
+          previousPortfolioItem();
+        } else if (event.key === 'ArrowRight') {
+          nextPortfolioItem();
+        }
+      }
+    });
+
+    // Закрытие модального окна при клике по фону
+    document.getElementById('portfolio-viewer-modal').addEventListener('click', function(event) {
+      if (event.target === this) {
+        closePortfolioViewer();
+      }
+    });
 
     function openPhotoModal(imageUrl) {
       // Проверяем, не открыто ли уже модальное окно
@@ -2344,6 +2503,50 @@
       <img src="" alt="Просмотр фото" class="max-w-full max-h-full object-contain photo-viewer-img">
     </div>
   </div>
+
+  <!-- Модальное окно просмотра портфолио -->
+  <div id="portfolio-viewer-modal" class="fixed inset-0 bg-black bg-opacity-90 hidden items-center justify-center z-50">
+    <div class="relative max-w-6xl max-h-[90vh] mx-4 w-full">
+      <button onclick="closePortfolioViewer()" class="absolute top-4 right-4 text-white text-3xl hover:text-gray-300 z-10 bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center">
+        <i class="ri-close-line"></i>
+      </button>
+      
+      <div class="flex items-center justify-center h-full">
+        <div id="portfolio-content" class="max-w-full max-h-full">
+          <!-- Контент будет загружен динамически -->
+        </div>
+      </div>
+      
+      <!-- Навигация -->
+      <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center space-x-4">
+        <button onclick="previousPortfolioItem()" class="bg-black bg-opacity-50 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-75">
+          <i class="ri-arrow-left-line"></i>
+        </button>
+        <span id="portfolio-counter" class="text-white bg-black bg-opacity-50 px-3 py-1 rounded-full text-sm"></span>
+        <button onclick="nextPortfolioItem()" class="bg-black bg-opacity-50 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-75">
+          <i class="ri-arrow-right-line"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+  /* Стили для модального окна портфолио */
+  #portfolio-viewer-modal {
+    display: none;
+  }
+  
+  #portfolio-viewer-modal:not(.hidden) {
+    display: flex !important;
+  }
+  
+  #portfolio-content video,
+  #portfolio-content img {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+  }
+  </style>
 
   <!-- CSRF токен для AJAX запросов -->
   {% csrf_token %}
