@@ -104,6 +104,12 @@ def register(request):
             messages.error(request, msg)
             return redirect('main:auth')
         
+        # Нормализуем номер телефона
+        from main.services import normalize_phone_number
+        normalized_phone = normalize_phone_number(phone_number)
+        print(f'Original phone number: {phone_number}')
+        print(f'Normalized phone number: {normalized_phone}')
+        
         # Проверяем, существует ли такой город в базе дан
         try:
             city_obj = City.objects.get(name=city)
@@ -123,16 +129,16 @@ def register(request):
                 messages.error(request, msg)
                 return redirect('main:auth')
         
-        # Проверяем, не занят ли номер телефона
-        if User.objects.filter(phone_number=phone_number).exists():
+        # Проверяем, не занят ли номер телефона (используем нормализованный номер)
+        if User.objects.filter(phone_number=normalized_phone).exists():
             msg = 'Пользователь с таким номером телефона уже существует!'
             print('REGISTER ERROR:', msg)
             messages.error(request, msg)
             return redirect('main:auth')
         # Создание пользователя
         try:
-            # Генерируем уникальный username на основе телефона
-            username = f"user_{phone_number.replace('+', '').replace(' ', '').replace('-', '').replace('(', '').replace(')', '')}"
+            # Генерируем уникальный username на основе нормализованного телефона
+            username = f"user_{normalized_phone.replace('+', '').replace(' ', '').replace('-', '').replace('(', '').replace(')', '')}"
             
             # Генерируем случайный пароль (пользователь будет входить по номеру телефона)
             import random
@@ -141,7 +147,7 @@ def register(request):
             
             user = User.objects.create_user(
                 username=username,
-                phone_number=phone_number,
+                phone_number=normalized_phone,
                 first_name=first_name,
                 last_name=last_name,
                 city=city_obj,
@@ -1642,14 +1648,19 @@ def send_otp(request):
             print('No phone number provided')
             return JsonResponse({'error': 'Phone number is required'}, status=400)
 
+        # Нормализуем номер телефона
+        from main.services import normalize_phone_number
+        normalized_phone = normalize_phone_number(phone_number)
+        print(f'Normalized phone number: {normalized_phone}')
+
         whatsapp_service = WhatsAppOTPService()
         otp_code = whatsapp_service.generate_otp()
         print(f'Generated OTP: {otp_code}')
         
-        # Save OTP to database
+        # Save OTP to database with normalized phone number
         try:
             otp_obj = OTP.objects.create(
-                phone_number=phone_number,
+                phone_number=normalized_phone,
                 code=otp_code
             )
             print(f'OTP saved to database: {otp_obj.id}')
@@ -1676,17 +1687,22 @@ def verify_otp(request):
         
         if not phone_number or not otp_code:
             return JsonResponse({'error': 'Phone number and OTP code are required'}, status=400)
+        
+        # Нормализуем номер телефона
+        from main.services import normalize_phone_number
+        normalized_phone = normalize_phone_number(phone_number)
+        print(f'Verifying OTP for normalized phone: {normalized_phone}')
             
-        # Get latest OTP for this phone number
-        stored_otp = OTP.objects.filter(phone_number=phone_number).order_by('-created_at').first()
+        # Get latest OTP for this phone number (using normalized number)
+        stored_otp = OTP.objects.filter(phone_number=normalized_phone).order_by('-created_at').first()
         
         if not stored_otp:
             return JsonResponse({'error': 'No OTP found for this phone number'}, status=400)
             
         whatsapp_service = WhatsAppOTPService()
         if whatsapp_service.verify_otp(phone_number, otp_code, stored_otp):
-            # Check if user exists
-            user = User.objects.filter(phone_number=phone_number).first()
+            # Check if user exists (using normalized number)
+            user = User.objects.filter(phone_number=normalized_phone).first()
             if user:
                 user.is_phone_verified = True
                 user.save()
@@ -1695,7 +1711,7 @@ def verify_otp(request):
                 return redirect('main:dashboard')
             else:
                 # Store verified phone in session for registration
-                request.session['verified_phone'] = phone_number
+                request.session['verified_phone'] = normalized_phone
                 # Redirect to register page instead of returning JSON
                 return redirect('main:register')
         else:

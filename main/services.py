@@ -1,7 +1,39 @@
 import requests
 import random
 import json
+import re
 from django.conf import settings
+
+def normalize_phone_number(phone_number):
+    """
+    Нормализует номер телефона к формату +7XXXXXXXXXX
+    Поддерживает форматы:
+    - +77712641298
+    - 87712641298
+    - 77712641298
+    - +7 771 264 12 98
+    - 8 (771) 264-12-98
+    """
+    # Удаляем все символы кроме цифр
+    digits_only = re.sub(r'[^\d]', '', phone_number)
+    
+    # Если номер начинается с 8, заменяем на 7
+    if digits_only.startswith('8'):
+        digits_only = '7' + digits_only[1:]
+    
+    # Если номер начинается с 7 и имеет 11 цифр, добавляем +
+    if digits_only.startswith('7') and len(digits_only) == 11:
+        return '+' + digits_only
+    
+    # Если номер уже в правильном формате (начинается с +7)
+    if phone_number.startswith('+7'):
+        # Удаляем все символы кроме цифр и добавляем +
+        digits_only = re.sub(r'[^\d]', '', phone_number)
+        if len(digits_only) == 11 and digits_only.startswith('7'):
+            return '+' + digits_only
+    
+    # Если ничего не подошло, возвращаем исходный номер
+    return phone_number
 
 class WhatsAppOTPService:
     def __init__(self):
@@ -18,9 +50,14 @@ class WhatsAppOTPService:
         """Send OTP via WhatsApp using Green API"""
         endpoint = f"{self.base_url}/waInstance{self.instance_id}/sendMessage/{self.api_token}"
         
+        # Нормализуем номер телефона
+        normalized_phone = normalize_phone_number(phone_number)
+        print(f'Original phone number: {phone_number}')
+        print(f'Normalized phone number: {normalized_phone}')
+        
         # Format phone number to WhatsApp format (remove + and spaces)
-        whatsapp_number = phone_number.replace('+', '').replace(' ', '')
-        print(f'Formatted phone number: {whatsapp_number}')
+        whatsapp_number = normalized_phone.replace('+', '').replace(' ', '')
+        print(f'WhatsApp formatted phone number: {whatsapp_number}')
         
         message = f"*Той со звездой*\n\nВаш код подтверждения: *{otp_code}*\n\nНикому не сообщайте этот код."
         print(f'Message to send: {message}')
