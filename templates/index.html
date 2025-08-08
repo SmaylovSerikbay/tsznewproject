@@ -5,17 +5,17 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="bg-gradient-to-br from-blue-600 to-purple-700 text-white py-20">
+<section class="bg-gradient-to-br from-blue-600 to-purple-700 text-white py-12">
     <div class="container mx-auto px-4 text-center">
-        <h1 class="text-4xl md:text-6xl font-bold mb-6">
+        <h1 class="text-3xl md:text-5xl font-bold mb-4">
             Найдите лучших <span class="text-yellow-300">исполнителей</span>
         </h1>
-        <p class="text-xl md:text-2xl mb-8 opacity-90 max-w-3xl mx-auto">
+        <p class="text-lg md:text-xl mb-6 opacity-90 max-w-2xl mx-auto">
             Фотографы, видеографы, музыканты и другие профессионалы для вашего праздника
         </p>
         {% if not user.is_authenticated %}
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="{% url 'main:auth' %}" class="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-colors inline-flex items-center justify-center">
+                <a href="{% url 'main:auth' %}" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold text-base hover:bg-gray-100 transition-colors inline-flex items-center justify-center">
                     <i class="ri-login-box-line mr-2"></i>
                     Войти
                 </a>
@@ -24,31 +24,89 @@
     </div>
 </section>
 
-<!-- Features Section -->
-<section class="py-16 bg-white">
+
+
+<!-- Functions Section -->
+<section class="py-16 bg-gray-50">
     <div class="container mx-auto px-4">
-        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-12">Почему выбирают нас</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="text-center p-6">
-                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="ri-shield-check-line text-2xl text-blue-600"></i>
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-12">Возможности платформы</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Для заказчиков -->
+            <div class="bg-white rounded-xl p-8 shadow-lg">
+                <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">Для заказчиков</h3>
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-4 mt-1">
+                            <i class="ri-search-line text-blue-600"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900">Найти исполнителей</h4>
+                            <p class="text-gray-600 text-sm">Каталог профессионалов с фильтрацией по категориям и рейтингу</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-4 mt-1">
+                            <i class="ri-file-list-line text-green-600"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900">Создать заявку</h4>
+                            <p class="text-gray-600 text-sm">Опишите мероприятие и получите предложения от исполнителей</p>
+                        </div>
+                    </div>
+                                         <div class="flex items-start">
+                         <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-4 mt-1">
+                             <i class="ri-message-3-line text-purple-600"></i>
+                         </div>
+                         <div>
+                             <h4 class="font-semibold text-gray-900">Общаться напрямую</h4>
+                             <p class="text-gray-600 text-sm">Чат для переговоров и обсуждения деталей</p>
+                         </div>
+                     </div>
+                     <div class="flex items-start">
+                         <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-4 mt-1">
+                             <i class="ri-calendar-check-line text-red-600"></i>
+                         </div>
+                         <div>
+                             <h4 class="font-semibold text-gray-900">Бронировать даты</h4>
+                             <p class="text-gray-600 text-sm">Проверяйте свободные даты и бронируйте исполнителей</p>
+                         </div>
+                     </div>
                 </div>
-                <h3 class="text-xl font-semibold text-gray-900 mb-3">Проверенные исполнители</h3>
-                <p class="text-gray-600">Мы тщательно проверяем каждого исполнителя перед публикацией</p>
             </div>
-            <div class="text-center p-6">
-                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="ri-star-line text-2xl text-blue-600"></i>
+
+            <!-- Для исполнителей -->
+            <div class="bg-white rounded-xl p-8 shadow-lg">
+                <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">Для исполнителей</h3>
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center mr-4 mt-1">
+                            <i class="ri-user-add-line text-emerald-600"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900">Создать профиль</h4>
+                            <p class="text-gray-600 text-sm">Заполните профиль с услугами и загрузите портфолио</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="w-8 h-8 bg-cyan-100 rounded-full flex items-center justify-center mr-4 mt-1">
+                            <i class="ri-notification-line text-cyan-600"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900">Получать заявки</h4>
+                            <p class="text-gray-600 text-sm">Уведомления о новых заказах и отклики на предложения</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-4 mt-1">
+                            <i class="ri-price-tag-3-line text-blue-600"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900">Устанавливать цены</h4>
+                            <p class="text-gray-600 text-sm">Укажите стоимость услуг и управляйте расписанием</p>
+                        </div>
+                    </div>
                 </div>
-                <h3 class="text-xl font-semibold text-gray-900 mb-3">Честные отзывы</h3>
-                <p class="text-gray-600">Только реальные отзывы от клиентов</p>
-            </div>
-            <div class="text-center p-6">
-                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="ri-secure-payment-line text-2xl text-blue-600"></i>
-                </div>
-                <h3 class="text-xl font-semibold text-gray-900 mb-3">Безопасная оплата</h3>
-                <p class="text-gray-600">Гарантия возврата средств</p>
             </div>
         </div>
     </div>
