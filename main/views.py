@@ -736,7 +736,7 @@ def catalog(request):
     max_price = request.GET.get('max_price')
     rating = request.GET.get('rating')
     date = request.GET.get('date')
-    sort = request.GET.get('sort', 'rating')
+    sort = request.GET.get('sort', 'newest')  # По умолчанию показываем сначала новые
 
     # Применяем фильтры
     if category and category != 'all':
@@ -774,10 +774,12 @@ def catalog(request):
         performers = performers.order_by('-tariffs__price')
     elif sort == 'rating':
         performers = performers.order_by('-avg_rating', '-reviews_count')
+    elif sort == 'name':
+        performers = performers.order_by('first_name', 'last_name')
     elif sort == 'newest':
         performers = performers.order_by('-date_joined')
     else:
-        performers = performers.order_by('-avg_rating', '-reviews_count')
+        performers = performers.order_by('-date_joined')  # По умолчанию сначала новые
 
     # Пагинация
     from django.core.paginator import Paginator

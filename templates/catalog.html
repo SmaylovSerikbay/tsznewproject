@@ -16,7 +16,7 @@
 
         <!-- Filters -->
         <div id="filtersContainer" class="bg-white rounded-xl shadow-sm p-6 mb-8 md:block hidden">
-            <form method="get" class="space-y-4">
+            <form method="get" class="space-y-4" id="filterForm">
                 <!-- All filters in one row -->
                 <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
                     <div>
@@ -95,6 +95,10 @@
       </div>
 
                     <div class="flex gap-2">
+                        <!-- Скрытое поле для сохранения текущей сортировки -->
+                        {% if request.GET.sort %}
+                            <input type="hidden" name="sort" value="{{ request.GET.sort }}">
+                        {% endif %}
                         <button type="submit" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors flex items-center justify-center">
                             <i class="ri-search-line mr-1"></i>
                             <span class="hidden sm:inline">Найти</span>
@@ -155,18 +159,26 @@
             <!-- Sort -->
             <div class="flex items-center justify-center sm:justify-end space-x-2">
                 <label for="sort" class="text-sm font-medium text-gray-700">Сортировка:</label>
-                <select 
-                    id="sort" 
-                    name="sort" 
-                    class="px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                    onchange="this.form.submit()"
-                >
-                    <option value="rating" {% if request.GET.sort == 'rating' %}selected{% endif %}>По рейтингу</option>
-                    <option value="name" {% if request.GET.sort == 'name' %}selected{% endif %}>По имени</option>
-                    <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>Сначала новые</option>
-                    <option value="price_low" {% if request.GET.sort == 'price_low' %}selected{% endif %}>По цене (дешевле)</option>
-                    <option value="price_high" {% if request.GET.sort == 'price_high' %}selected{% endif %}>По цене (дороже)</option>
-              </select>
+                <form method="get" id="sortForm" class="flex items-center space-x-2">
+                    <!-- Сохраняем все текущие параметры фильтров -->
+                    {% for key, value in request.GET.items %}
+                        {% if key != 'sort' and key != 'page' %}
+                            <input type="hidden" name="{{ key }}" value="{{ value }}">
+                        {% endif %}
+                    {% endfor %}
+                    <select 
+                        id="sort" 
+                        name="sort" 
+                        class="px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        onchange="document.getElementById('sortForm').submit()"
+                    >
+                        <option value="newest" {% if request.GET.sort == 'newest' or not request.GET.sort %}selected{% endif %}>Сначала новые</option>
+                        <option value="rating" {% if request.GET.sort == 'rating' %}selected{% endif %}>По рейтингу</option>
+                        <option value="name" {% if request.GET.sort == 'name' %}selected{% endif %}>По имени</option>
+                        <option value="price_low" {% if request.GET.sort == 'price_low' %}selected{% endif %}>По цене (дешевле)</option>
+                        <option value="price_high" {% if request.GET.sort == 'price_high' %}selected{% endif %}>По цене (дороже)</option>
+                    </select>
+                </form>
         </div>
       </div>
 
