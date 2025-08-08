@@ -31,32 +31,36 @@
                         <input type="hidden" name="step" value="phone">
                         
                         <div class="text-center mb-8">
-                            <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <i class="ri-phone-line text-white text-2xl"></i>
+                            <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="ri-whatsapp-line text-white text-2xl"></i>
                             </div>
-                            <h2 class="text-2xl font-bold text-gray-900 mb-2">Введите номер телефона</h2>
-                            <p class="text-gray-600">Мы отправим SMS с кодом подтверждения</p>
+                            <h2 class="text-2xl font-bold text-gray-900 mb-2">Введите номер WhatsApp</h2>
+                            <p class="text-gray-600">Код подтверждения будет отправлен в WhatsApp</p>
                         </div>
 
                         <!-- Phone Number -->
                         <div>
                             <label for="phone_number" class="block text-sm font-semibold text-gray-700 mb-3">
-                                Номер телефона
+                                Номер WhatsApp
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <i class="ri-phone-line text-gray-400 text-xl"></i>
+                                    <i class="ri-whatsapp-line text-gray-400 text-xl"></i>
                                 </div>
                                 <input 
                                     type="tel" 
                                     id="phone_number" 
                                     name="phone_number" 
                                     value="{{ form.phone_number.value|default:'' }}"
-                                    class="block w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 text-lg transition-all duration-300"
+                                    class="block w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-green-100 focus:border-green-500 text-lg transition-all duration-300"
                                     placeholder="+7 (777) 777-77-77"
                                     required
                                 >
                             </div>
+                            <p class="mt-2 text-sm text-gray-500">
+                                <i class="ri-information-line mr-1"></i>
+                                Введите номер в международном формате (например: +7 777 777 77 77)
+                            </p>
                             {% if form.phone_number.errors %}
                                 <p class="mt-2 text-sm text-red-600">{{ form.phone_number.errors.0 }}</p>
                             {% endif %}
@@ -77,10 +81,10 @@
                         
                         <div class="text-center mb-8">
                             <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <i class="ri-shield-keyhole-line text-white text-2xl"></i>
+                                <i class="ri-whatsapp-line text-white text-2xl"></i>
                             </div>
                             <h2 class="text-2xl font-bold text-gray-900 mb-2">Введите код подтверждения</h2>
-                            <p class="text-gray-600" id="otpInfoText">Код отправлен на ваш номер</p>
+                            <p class="text-gray-600" id="otpInfoText">Код отправлен в WhatsApp на ваш номер</p>
                         </div>
 
                         <!-- OTP Input -->
@@ -323,7 +327,7 @@ function showOtpForm(phoneNumber) {
     if (phoneForm) phoneForm.classList.add('hidden');
     if (otpForm) otpForm.classList.remove('hidden');
     if (otpPhoneNumber) otpPhoneNumber.value = phoneNumber;
-    if (otpInfoText) otpInfoText.textContent = `Код отправлен на номер ${phoneNumber}`;
+    if (otpInfoText) otpInfoText.textContent = `Код отправлен в WhatsApp на номер ${phoneNumber}`;
     
     // Автоматически фокусируемся на поле ввода кода
     setTimeout(() => {
