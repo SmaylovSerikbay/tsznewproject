@@ -19,22 +19,18 @@ class OrderForm(forms.ModelForm):
     class Meta:
         model = Order
         fields = ['title', 'event_type', 'event_date', 'venue', 'guest_count', 
-                 'description', 'budget', 'services']
+                 'description', 'budget']
         widgets = {
             'event_date': forms.DateInput(attrs={'type': 'date'}),
             'description': forms.Textarea(attrs={'rows': 4}),
             'budget': forms.NumberInput(attrs={'min': '0', 'step': '10000'}),
             'guest_count': forms.NumberInput(attrs={'min': '1'}),
-            'services': forms.HiddenInput(),  # Скрытое поле для services
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Делаем поле description необязательным
         self.fields['description'].required = False
-        
-        # Делаем поле services необязательным (оно будет заполнено в view)
-        self.fields['services'].required = False
         
         # Получаем города из базы данных
         from .models import City
@@ -49,6 +45,12 @@ class OrderForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        
+        # Проверяем, что выбрана хотя бы одна услуга
+        services = self.data.getlist('services') if hasattr(self, 'data') else []
+        if not services:
+            raise forms.ValidationError('Выберите хотя бы одну услугу')
+        
         return cleaned_data
 
 class ReviewForm(forms.ModelForm):

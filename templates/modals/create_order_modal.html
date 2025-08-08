@@ -136,7 +136,23 @@ function openCreateOrderModal() {
       const today = new Date().toISOString().split('T')[0];
       eventDateElement.min = today;
     }
+    
+    // Очистить ошибки валидации
+    clearValidationErrors();
   }
+}
+
+function clearValidationErrors() {
+  // Удалить красные границы
+  document.querySelectorAll('.border-red-500').forEach(element => {
+    element.classList.remove('border-red-500');
+    element.classList.add('border-gray-200');
+  });
+  
+  // Удалить сообщения об ошибках
+  document.querySelectorAll('.text-red-500.text-sm.mt-1').forEach(element => {
+    element.remove();
+  });
 }
 
 function closeCreateOrderModal() {
@@ -150,6 +166,9 @@ function closeCreateOrderModal() {
   if (form) {
     form.reset();
   }
+  
+  // Очистить ошибки валидации
+  clearValidationErrors();
   
   // Сбросить стили услуг
   document.querySelectorAll('.service-option').forEach(option => {
@@ -194,6 +213,20 @@ document.addEventListener('DOMContentLoaded', function() {
 function submitCreateOrder(event) {
   event.preventDefault();
   
+  // Очистить предыдущие ошибки
+  clearValidationErrors();
+  
+  // Проверка на стороне клиента
+  const selectedServices = [];
+  document.querySelectorAll('#servicesContainer input[type="checkbox"]:checked').forEach(checkbox => {
+    selectedServices.push(checkbox.value);
+  });
+  
+  if (selectedServices.length === 0) {
+    showNotification('Выберите хотя бы одну услугу', 'error');
+    return;
+  }
+  
   const submitButton = event.target.querySelector('button[type="submit"]');
   const originalText = submitButton.innerHTML;
   submitButton.innerHTML = '<i class="ri-loader-4-line mr-2 animate-spin"></i>Создаем...';
@@ -201,12 +234,6 @@ function submitCreateOrder(event) {
   
   // Собираем данные формы
   const formData = new FormData(event.target);
-  
-  // Собираем выбранные услуги
-  const selectedServices = [];
-  document.querySelectorAll('#servicesContainer input[type="checkbox"]:checked').forEach(checkbox => {
-    selectedServices.push(checkbox.value);
-  });
   
   // Добавляем услуги к форме
   formData.delete('services');
@@ -222,7 +249,14 @@ function submitCreateOrder(event) {
     },
     body: formData
   })
-  .then(response => response.json())
+  .then(response => {
+    if (!response.ok) {
+      return response.json().then(data => {
+        throw new Error(JSON.stringify(data));
+      });
+    }
+    return response.json();
+  })
   .then(data => {
     if (data.success) {
       closeCreateOrderModal();
@@ -234,7 +268,27 @@ function submitCreateOrder(event) {
   })
   .catch(error => {
     console.error('Error:', error);
-    showNotification('Произошла ошибка при создании заявки', 'error');
+    try {
+      const errorData = JSON.parse(error.message);
+      if (errorData.errors) {
+        // Показываем ошибки валидации
+        Object.keys(errorData.errors).forEach(field => {
+          const fieldElement = document.querySelector(`[name="${field}"]`);
+          if (fieldElement) {
+            fieldElement.classList.add('border-red-500');
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'text-red-500 text-sm mt-1';
+            errorMessage.textContent = errorData.errors[field];
+            fieldElement.parentNode.appendChild(errorMessage);
+          }
+        });
+        showNotification('Пожалуйста, исправьте ошибки в форме', 'error');
+      } else {
+        showNotification(errorData.message || 'Произошла ошибка при создании заявки', 'error');
+      }
+    } catch (e) {
+      showNotification('Произошла ошибка при создании заявки', 'error');
+    }
   })
   .finally(() => {
     submitButton.innerHTML = originalText;

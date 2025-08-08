@@ -554,7 +554,7 @@
       </div>
       
       <!-- Mobile Navigation -->
-      <div class="nav-grid md:hidden grid grid-cols-2 gap-2 mb-6">
+      <div class="nav-grid md:hidden grid grid-cols-3 gap-2 mb-6">
         <button onclick="showTab('orders', this)" class="nav-btn mobile-nav-btn flex items-center p-3 rounded-xl bg-blue-50 text-blue-600 active">
           <i class="nav-icon ri-file-list-line text-xl mr-2"></i>
           <div class="text-left min-w-0 flex-1">
@@ -568,21 +568,28 @@
             <div class="nav-text text-sm font-semibold truncate">Портфолио</div>
             <div class="text-xs opacity-75">{{ portfolio_count }}</div>
           </div>
-          </button>
+        </button>
         <button onclick="showTab('tariffs', this)" class="nav-btn mobile-nav-btn flex items-center p-3 rounded-xl bg-gray-100 text-gray-600">
           <i class="nav-icon ri-money-dollar-circle-line text-xl mr-2"></i>
           <div class="text-left min-w-0 flex-1">
             <div class="nav-text text-sm font-semibold truncate">Тарифы</div>
             <div class="text-xs opacity-75">{{ tariffs_count }}</div>
           </div>
-          </button>
+        </button>
+        <button onclick="showTab('calendar', this)" class="nav-btn mobile-nav-btn flex items-center p-3 rounded-xl bg-gray-100 text-gray-600">
+          <i class="nav-icon ri-calendar-line text-xl mr-2"></i>
+          <div class="text-left min-w-0 flex-1">
+            <div class="nav-text text-sm font-semibold truncate">Календарь</div>
+            <div class="text-xs opacity-75"></div>
+          </div>
+        </button>
         <button onclick="showTab('profile', this)" class="nav-btn mobile-nav-btn flex items-center p-3 rounded-xl bg-gray-100 text-gray-600">
           <i class="nav-icon ri-user-settings-line text-xl mr-2"></i>
           <div class="text-left min-w-0 flex-1">
             <div class="nav-text text-sm font-semibold truncate">Профиль</div>
             <div class="text-xs opacity-75"></div>
           </div>
-          </button>
+        </button>
       </div>
 
       <!-- Tab Content -->
@@ -631,10 +638,10 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div class="flex gap-2">
-                        <button data-order-id="{{ order.id }}" data-action="respond" class="order-action-btn bg-primary text-white px-3 py-1 rounded text-xs hover:bg-primary-dark">
+                        <button onclick="openOrderDetailModal({{ order.id }}, 'respond')" class="order-action-btn bg-primary text-white px-3 py-1 rounded text-xs hover:bg-primary-dark">
                           Откликнуться
                         </button>
-                        <button data-order-id="{{ order.id }}" data-action="view" class="order-action-btn text-indigo-600 hover:text-indigo-900 px-3 py-1 rounded text-xs border border-indigo-600">
+                        <button onclick="openOrderDetailModal({{ order.id }}, 'view')" class="order-action-btn text-indigo-600 hover:text-indigo-900 px-3 py-1 rounded text-xs border border-indigo-600">
                           Подробнее
                         </button>
                   </div>
@@ -690,10 +697,10 @@
                 
                 <!-- Action Buttons -->
                 <div class="flex gap-2">
-                  <button data-order-id="{{ order.id }}" data-action="respond" class="order-action-btn flex-1 bg-primary text-white py-2.5 px-3 rounded-xl text-sm font-medium active:bg-primary-dark transition-colors">
+                  <button onclick="openOrderDetailModal({{ order.id }}, 'respond')" class="order-action-btn flex-1 bg-primary text-white py-2.5 px-3 rounded-xl text-sm font-medium active:bg-primary-dark transition-colors">
                     <i class="ri-add-line mr-1"></i>Откликнуться
               </button>
-                  <button data-order-id="{{ order.id }}" data-action="view" class="order-action-btn bg-gray-100 text-gray-700 py-2.5 px-3 rounded-xl text-sm font-medium active:bg-gray-200 transition-colors">
+                  <button onclick="openOrderDetailModal({{ order.id }}, 'view')" class="order-action-btn bg-gray-100 text-gray-700 py-2.5 px-3 rounded-xl text-sm font-medium active:bg-gray-200 transition-colors">
                     <i class="ri-eye-line mr-1"></i>Подробнее
               </button>
             </div>
@@ -776,22 +783,22 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div class="flex gap-2">
-                        <button data-order-id="{{ order.id }}" data-action="view" class="order-action-btn text-indigo-600 hover:text-indigo-900 px-3 py-1 rounded text-xs border border-indigo-600">
+                        <button onclick="openOrderDetailModal({{ order.id }}, 'view')" class="order-action-btn text-indigo-600 hover:text-indigo-900 px-3 py-1 rounded text-xs border border-indigo-600">
                           Подробнее
                         </button>
                         {% if order.status == 'in_progress' %}
                           <a href="https://wa.me/{{ order.customer.phone_number }}?text=Здравствуйте! У меня есть вопрос по заказу {{ order.title }}" target="_blank" class="text-green-600 hover:text-green-900 px-3 py-1 rounded text-xs border border-green-600">
                             <i class="ri-whatsapp-line mr-1"></i>WhatsApp
                           </a>
-                          <button data-order-id="{{ order.id }}" data-action="complete" class="complete-btn text-green-600 hover:text-green-900 px-3 py-1 rounded text-xs border border-green-600">
+                          <button data-order-id="{{ order.id }}" data-action="complete" class="complete-btn text-green-600 hover:text-green-900 px-3 py-1 rounded text-xs border border-green-600" onclick="console.log('Complete button clicked:', {{ order.id }}); if(typeof completeOrder === 'function') { completeOrder({{ order.id }}); } else { console.error('completeOrder function not found'); }">
                             Завершить
                           </button>
                     {% elif order.status == 'new' %}
                       {% if order.order_type == 'booking' %}
-                            <button data-order-id="{{ order.id }}" data-action="accept" class="accept-btn text-green-600 hover:text-green-900 px-3 py-1 rounded text-xs border border-green-600">
+                            <button data-order-id="{{ order.id }}" data-action="accept" class="accept-btn text-green-600 hover:text-green-900 px-3 py-1 rounded text-xs border border-green-600" onclick="console.log('Accept booking clicked:', {{ order.id }}); if(typeof acceptBooking === 'function') { acceptBooking({{ order.id }}); } else { console.error('acceptBooking function not found'); }">
                               Принять
                             </button>
-                            <button data-order-id="{{ order.id }}" data-action="reject" class="reject-btn text-red-600 hover:text-red-900 px-3 py-1 rounded text-xs border border-red-600">
+                            <button data-order-id="{{ order.id }}" data-action="reject" class="reject-btn text-red-600 hover:text-red-900 px-3 py-1 rounded text-xs border border-red-600" onclick="console.log('Reject booking clicked:', {{ order.id }}); if(typeof rejectBooking === 'function') { rejectBooking({{ order.id }}); } else { console.error('rejectBooking function not found'); }">
                               Отклонить
                             </button>
                       {% else %}
@@ -886,8 +893,8 @@
                 
                 <!-- Action Buttons -->
                 <div class="flex gap-2">
-                  <button data-order-id="{{ order.id }}" data-action="view" class="order-action-btn bg-gray-100 text-gray-700 py-2 px-3 rounded-xl text-sm font-medium active:bg-gray-200 transition-colors">
-                    <i class="ri-eye-line mr-1"></i>Подробнее
+                  <button onclick="openOrderDetailModal({{ order.id }}, 'view')" class="order-action-btn bg-gray-100 text-gray-700 p-2 rounded-xl text-sm font-medium active:bg-gray-200 transition-colors">
+                    <i class="ri-eye-line text-lg"></i>
               </button>
               {% if order.status == 'in_progress' %}
                     <a href="https://wa.me/{{ order.customer.phone_number }}?text=Здравствуйте! У меня есть вопрос по заказу {{ order.title }}" target="_blank" class="bg-green-100 text-green-700 py-2 px-3 rounded-xl text-sm font-medium active:bg-green-200 transition-colors">
@@ -898,11 +905,11 @@
                 </button>
               {% elif order.status == 'new' %}
                 {% if order.order_type == 'booking' %}
-                      <button data-order-id="{{ order.id }}" data-action="accept" class="accept-btn bg-green-100 text-green-700 py-2 px-3 rounded-xl text-sm font-medium active:bg-green-200 transition-colors">
-                        <i class="ri-check-line mr-1"></i>Принять
+                      <button data-order-id="{{ order.id }}" data-action="accept" class="accept-btn bg-green-100 text-green-700 p-2 rounded-xl text-sm font-medium active:bg-green-200 transition-colors" onclick="console.log('Accept booking clicked:', {{ order.id }}); if(typeof acceptBooking === 'function') { acceptBooking({{ order.id }}); } else { console.error('acceptBooking function not found'); }">
+                        <i class="ri-check-line text-lg"></i>
                   </button>
-                      <button data-order-id="{{ order.id }}" data-action="reject" class="reject-btn bg-red-100 text-red-700 py-2 px-3 rounded-xl text-sm font-medium active:bg-red-200 transition-colors">
-                        <i class="ri-close-line mr-1"></i>Отклонить
+                      <button data-order-id="{{ order.id }}" data-action="reject" class="reject-btn bg-red-100 text-red-700 p-2 rounded-xl text-sm font-medium active:bg-red-200 transition-colors" onclick="console.log('Reject booking clicked:', {{ order.id }}); if(typeof rejectBooking === 'function') { rejectBooking({{ order.id }}); } else { console.error('rejectBooking function not found'); }">
+                        <i class="ri-close-line text-lg"></i>
                   </button>
                 {% else %}
                       <a href="https://wa.me/{{ order.customer.phone_number }}?text=Здравствуйте! У меня есть вопрос по заказу {{ order.title }}" target="_blank" class="bg-green-100 text-green-700 py-2 px-3 rounded-xl text-sm font-medium active:bg-green-200 transition-colors">
@@ -973,11 +980,11 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div class="flex gap-2">
-                        <button data-order-id="{{ response.order.id }}" data-action="view" class="order-action-btn text-indigo-600 hover:text-indigo-900 px-3 py-1 rounded text-xs border border-indigo-600">
+                        <button onclick="openOrderDetailModal({{ response.order.id }}, 'view')" class="order-action-btn text-indigo-600 hover:text-indigo-900 px-3 py-1 rounded text-xs border border-indigo-600">
                           Подробнее
                         </button>
                     {% if response.order.status == 'new' and response.status != 'cancelled' %}
-                          <button data-response-id="{{ response.id }}" data-action="cancel-response" class="cancel-response-btn text-red-600 hover:text-red-900 px-3 py-1 rounded text-xs border border-red-600">
+                          <button data-response-id="{{ response.id }}" data-action="cancel-response" class="cancel-response-btn text-red-600 hover:text-red-900 px-3 py-1 rounded text-xs border border-red-600" onclick="console.log('Cancel response clicked:', {{ response.id }}); if(typeof cancelResponse === 'function') { cancelResponse({{ response.id }}); } else { console.error('cancelResponse function not found'); }">
                             Отменить отклик
                           </button>
                     {% elif response.order.status == 'in_progress' %}
@@ -985,7 +992,7 @@
                         {% if response.performer.service_type.code in selected_performers and selected_performers|get_item:response.performer.service_type.code == response.performer.id %}
                               <span class="text-green-600 px-3 py-1 text-xs">Принят</span>
                         {% elif response.status != 'cancelled' %}
-                              <button data-response-id="{{ response.id }}" data-action="cancel-response" class="cancel-response-btn text-red-600 hover:text-red-900 px-3 py-1 rounded text-xs border border-red-600">
+                              <button data-response-id="{{ response.id }}" data-action="cancel-response" class="cancel-response-btn text-red-600 hover:text-red-900 px-3 py-1 rounded text-xs border border-red-600" onclick="console.log('Cancel response clicked:', {{ response.id }}); if(typeof cancelResponse === 'function') { cancelResponse({{ response.id }}); } else { console.error('cancelResponse function not found'); }">
                                 Отменить отклик
                               </button>
                         {% endif %}
@@ -1051,11 +1058,11 @@
                 
                 <!-- Action Buttons -->
                 <div class="flex gap-2 flex-wrap">
-                  <button data-order-id="{{ response.order.id }}" data-action="view" class="order-action-btn bg-gray-100 text-gray-700 py-2.5 px-4 rounded-xl text-sm font-medium active:bg-gray-200 transition-colors">
-                    <i class="ri-eye-line mr-1"></i>Подробнее
+                  <button onclick="openOrderDetailModal({{ response.order.id }}, 'view')" class="order-action-btn bg-gray-100 text-gray-700 p-2 rounded-xl text-sm font-medium active:bg-gray-200 transition-colors">
+                    <i class="ri-eye-line text-lg"></i>
               </button>
               {% if response.order.status == 'new' and response.status != 'cancelled' %}
-                    <button data-response-id="{{ response.id }}" data-action="cancel-response" class="cancel-response-btn bg-red-100 text-red-700 py-2.5 px-4 rounded-xl text-sm font-medium active:bg-red-200 transition-colors">
+                    <button data-response-id="{{ response.id }}" data-action="cancel-response" class="cancel-response-btn bg-red-100 text-red-700 py-2.5 px-4 rounded-xl text-sm font-medium active:bg-red-200 transition-colors" onclick="console.log('Cancel response clicked:', {{ response.id }}); if(typeof cancelResponse === 'function') { cancelResponse({{ response.id }}); } else { console.error('cancelResponse function not found'); }">
                       <i class="ri-close-line mr-1"></i>Отменить отклик
                 </button>
               {% elif response.order.status == 'in_progress' %}
@@ -1065,7 +1072,7 @@
                           <i class="ri-check-line mr-1"></i>Принят
                     </span>
                   {% elif response.status != 'cancelled' %}
-                        <button data-response-id="{{ response.id }}" data-action="cancel-response" class="cancel-response-btn bg-red-100 text-red-700 py-2.5 px-4 rounded-xl text-sm font-medium active:bg-red-200 transition-colors">
+                        <button data-response-id="{{ response.id }}" data-action="cancel-response" class="cancel-response-btn bg-red-100 text-red-700 py-2.5 px-4 rounded-xl text-sm font-medium active:bg-red-200 transition-colors" onclick="console.log('Cancel response clicked:', {{ response.id }}); if(typeof cancelResponse === 'function') { cancelResponse({{ response.id }}); } else { console.error('cancelResponse function not found'); }">
                           <i class="ri-close-line mr-1"></i>Отменить отклик
                     </button>
                   {% endif %}
@@ -1564,17 +1571,22 @@
 
     // Основные функции для работы с заказами
     function viewOrderDetails(orderId) {
-      alert('Просмотр деталей заказа #' + orderId);
-    }
-
-    function respondToOrder(orderId) {
-      alert('Откликнуться на заказ #' + orderId);
+      // Открываем модальное окно для просмотра деталей заказа
+      if (typeof openOrderDetailModal === 'function') {
+        openOrderDetailModal(orderId, 'view');
+      } else {
+        // Fallback - перенаправляем на страницу деталей заказа
+        window.location.href = `/order/${orderId}/`;
+      }
     }
 
 
 
     function completeOrder(orderId) {
+      console.log('completeOrder called with orderId:', orderId);
       if (confirm('Вы уверены, что хотите завершить заказ?')) {
+        console.log('User confirmed, sending request...');
+        
         fetch(`/order/${orderId}/complete-api/`, {
           method: 'POST',
           headers: {
@@ -1582,17 +1594,25 @@
             'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
           },
         })
-        .then(response => response.json())
+        .then(response => {
+          console.log('Response status:', response.status);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
         .then(data => {
+          console.log('Response data:', data);
           if (data.success) {
-            location.reload();
-      } else {
-            alert('Ошибка: ' + data.message);
+            showNotification('Заказ успешно завершен!', 'success');
+            setTimeout(() => location.reload(), 1000);
+          } else {
+            showNotification('Ошибка: ' + (data.error || data.message || 'Неизвестная ошибка'), 'error');
           }
         })
         .catch(error => {
           console.error('Error:', error);
-          alert('Произошла ошибка при завершении заказа');
+          showNotification('Произошла ошибка при завершении заказа: ' + error.message, 'error');
         });
       }
     }
@@ -1759,7 +1779,11 @@
 
     // Функции для работы с календарем
     function openCalendarModal() {
-      alert('Открытие календаря для управления занятыми датами');
+      openModal('calendarModal');
+    }
+
+    function closeCalendarModal() {
+      closeModal('calendarModal');
     }
 
     // Функции для работы с портфолио
@@ -1974,6 +1998,48 @@
 
     function openEditProfileModal() {
       openModal('editProfileModal');
+      
+      // Инициализируем фото профиля в модальном окне
+      const profilePhotoPreview = document.getElementById('profilePhotoPreview');
+      const profilePhotoIcon = document.getElementById('profilePhotoIcon');
+      
+      if (profilePhotoPreview && profilePhotoIcon) {
+        // Получаем текущее фото пользователя из основного интерфейса
+        const currentProfilePhoto = document.querySelector('.profile-photo img, .user-avatar img');
+        
+        if (currentProfilePhoto && currentProfilePhoto.src) {
+          // Если есть фото, показываем его
+          profilePhotoPreview.src = currentProfilePhoto.src;
+          profilePhotoPreview.classList.remove('hidden');
+          profilePhotoIcon.classList.add('hidden');
+        } else {
+          // Если нет фото, показываем иконку
+          profilePhotoPreview.classList.add('hidden');
+          profilePhotoIcon.classList.remove('hidden');
+        }
+      }
+    }
+
+    // Функция предварительного просмотра фото профиля
+    function previewProfilePhoto(event) {
+      const file = event.target.files[0];
+      const profilePhotoPreview = document.getElementById('profilePhotoPreview');
+      const profilePhotoIcon = document.getElementById('profilePhotoIcon');
+      
+      if (file && profilePhotoPreview && profilePhotoIcon) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          profilePhotoPreview.src = e.target.result;
+          profilePhotoPreview.classList.remove('hidden');
+          profilePhotoIcon.classList.add('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Функция закрытия модального окна редактирования профиля
+    function closeEditProfileModal() {
+      closeModal('editProfileModal');
     }
 
     // Основные функции для работы с модальными окнами (совместимость со старыми стилями)
@@ -2258,42 +2324,6 @@
       }
     }
 
-    function cancelResponse(responseId) {
-      console.log('cancelResponse called with responseId:', responseId);
-      if (confirm('Вы уверены, что хотите отменить этот отклик?')) {
-        console.log('User confirmed, sending request...');
-        
-        fetch(`/order/response/${responseId}/cancel/`, {
-          method: 'POST',
-          headers: {
-            'X-CSRFToken': getCookie('csrftoken')
-          }
-        })
-        .then(response => {
-          console.log('Response status:', response.status);
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then(data => {
-          console.log('Response data:', data);
-          if (data.success) {
-            showNotification(data.message || 'Отклик успешно отменен!', 'success');
-            setTimeout(() => { location.reload(); }, 1000);
-          } else {
-            showNotification('Ошибка при отмене отклика: ' + (data.error || 'Неизвестная ошибка'), 'error');
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          showNotification('Ошибка при отмене отклика: ' + error.message, 'error');
-        });
-      }
-    }
-
-
-
     // Обработчики событий для кнопок заказов
     document.addEventListener('DOMContentLoaded', function() {
       // Проверяем, есть ли сохраненный активный таб
@@ -2369,86 +2399,80 @@
 
 
 
-      // Кнопки действий с заказами (как в backup файле)
-      document.querySelectorAll('.order-action-btn').forEach(button => {
-        button.addEventListener('click', function() {
-          const orderId = this.getAttribute('data-order-id');
-          const action = this.getAttribute('data-action');
-          
-          if (typeof openOrderDetailModal === 'function') {
-            openOrderDetailModal(orderId, action);
-          } else {
-            console.error('openOrderDetailModal function not found');
-            // Fallback к нашим функциям
-            switch(action) {
-              case 'respond':
-                respondToOrder(orderId);
-                break;
-              case 'view':
-                viewOrderDetails(orderId);
-                break;
-              default:
-                console.log('Unknown action:', action);
+      // Инициализация обработчиков событий для кнопок (упрощенная версия)
+      function initializeEventHandlers() {
+        console.log('Initializing event handlers...');
+        
+        // Кнопки завершения заказов
+        document.querySelectorAll('.complete-btn').forEach(button => {
+          button.addEventListener('click', function() {
+            const orderId = this.getAttribute('data-order-id');
+            console.log('Complete button clicked:', orderId);
+            if (typeof completeOrder === 'function') {
+              completeOrder(orderId);
+            } else {
+              console.error('completeOrder function not found');
             }
-          }
+          });
         });
-      });
 
-      // Кнопки завершения заказов
-      document.querySelectorAll('.complete-btn').forEach(button => {
-        button.addEventListener('click', function() {
-          const orderId = this.getAttribute('data-order-id');
-          if (typeof completeOrder === 'function') {
-            completeOrder(orderId);
-          }
+        // Кнопки принятия бронирований
+        document.querySelectorAll('.accept-btn').forEach(button => {
+          button.addEventListener('click', function() {
+            const orderId = this.getAttribute('data-order-id');
+            if (typeof acceptBooking === 'function') {
+              acceptBooking(orderId);
+            }
+          });
         });
-      });
 
-      // Кнопки принятия бронирований
-      document.querySelectorAll('.accept-btn').forEach(button => {
-        button.addEventListener('click', function() {
-          const orderId = this.getAttribute('data-order-id');
-          if (typeof acceptBooking === 'function') {
-            acceptBooking(orderId);
-          }
+        // Кнопки отклонения бронирований
+        document.querySelectorAll('.reject-btn').forEach(button => {
+          button.addEventListener('click', function() {
+            const orderId = this.getAttribute('data-order-id');
+            if (typeof rejectBooking === 'function') {
+              rejectBooking(orderId);
+            }
+          });
         });
-      });
 
-      // Кнопки отклонения бронирований
-      document.querySelectorAll('.reject-btn').forEach(button => {
-        button.addEventListener('click', function() {
-          const orderId = this.getAttribute('data-order-id');
-          if (typeof rejectBooking === 'function') {
-            rejectBooking(orderId);
-          }
+        // Кнопки отмены заказов
+        document.querySelectorAll('.cancel-btn').forEach(button => {
+          button.addEventListener('click', function() {
+            const orderId = this.getAttribute('data-order-id');
+            if (typeof cancelOrder === 'function') {
+              cancelOrder(orderId);
+            }
+          });
         });
-      });
 
-      // Кнопки отмены заказов
-      document.querySelectorAll('.cancel-btn').forEach(button => {
-        button.addEventListener('click', function() {
-          const orderId = this.getAttribute('data-order-id');
-          if (typeof cancelOrder === 'function') {
-            cancelOrder(orderId);
-          }
+        // Кнопки отмены откликов
+        document.querySelectorAll('.cancel-response-btn').forEach(button => {
+          button.addEventListener('click', function() {
+            const responseId = this.getAttribute('data-response-id');
+            console.log('Cancel response button clicked:', responseId);
+            if (typeof cancelResponse === 'function') {
+              cancelResponse(responseId);
+            } else {
+              console.error('cancelResponse function not found');
+            }
+          });
         });
-      });
+        
+        console.log('Event handlers initialized.');
+      }
+      
+      // Вызываем инициализацию после загрузки DOM
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeEventHandlers);
+      } else {
+        initializeEventHandlers();
+      }
+      
+      // Делаем функцию доступной глобально для повторной инициализации
+      window.initializeEventHandlers = initializeEventHandlers;
 
-      // Кнопки чата
-      document.querySelectorAll('.chat-btn').forEach(button => {
-        button.addEventListener('click', function() {
-          const orderId = this.getAttribute('data-order-id');
-          openChat(orderId);
-        });
-      });
 
-      // Кнопки отмены откликов
-      document.querySelectorAll('.cancel-response-btn').forEach(button => {
-        button.addEventListener('click', function() {
-          const responseId = this.getAttribute('data-response-id');
-            cancelResponse(responseId);
-        });
-      });
 
       // Закрытие модальных окон по Escape
       document.addEventListener('keydown', function(e) {

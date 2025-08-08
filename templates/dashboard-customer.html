@@ -532,6 +532,7 @@
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Заявка</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Исполнитель</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Цена</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Сообщение</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата отклика</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
@@ -549,6 +550,25 @@
                       <div class="text-sm text-gray-500">{{ response.performer.service_type.name|default:"Не указано" }}</div>
                   </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ response.price }} ₸</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                      {% if response.status == 'pending' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          Ожидает
+                        </span>
+                      {% elif response.status == 'accepted' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Принят
+                        </span>
+                      {% elif response.status == 'rejected' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          Отклонен
+                        </span>
+                      {% elif response.status == 'cancelled' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          Отменен
+                        </span>
+                      {% endif %}
+                    </td>
                     <td class="px-6 py-4 text-sm text-gray-900">
                       {% if response.message %}
                         <div class="max-w-xs truncate" title="{{ response.message }}">{{ response.message }}</div>
@@ -560,8 +580,16 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div class="flex flex-wrap gap-2">
                         <button onclick="openQuickProfileModal({{ response.performer.id }})" class="text-indigo-600 hover:text-indigo-900 px-3 py-1 rounded text-xs border border-indigo-600">Профиль</button>
-                        <button onclick="acceptResponse({{ response.id }})" class="text-green-600 hover:text-green-900 px-3 py-1 rounded text-xs border border-green-600">Принять</button>
-                        <button onclick="rejectResponse({{ response.id }})" class="text-red-600 hover:text-red-900 px-3 py-1 rounded text-xs border border-red-600">Отклонить</button>
+                        {% if response.status == 'pending' %}
+                          <button onclick="acceptResponse({{ response.id }})" class="text-green-600 hover:text-green-900 px-3 py-1 rounded text-xs border border-green-600">Принять</button>
+                          <button onclick="rejectResponse({{ response.id }})" class="text-red-600 hover:text-red-900 px-3 py-1 rounded text-xs border border-red-600">Отклонить</button>
+                        {% elif response.status == 'accepted' %}
+                          <span class="text-green-600 px-3 py-1 text-xs border border-green-600 rounded">Принят</span>
+                        {% elif response.status == 'rejected' %}
+                          <span class="text-red-600 px-3 py-1 text-xs border border-red-600 rounded">Отклонен</span>
+                        {% elif response.status == 'cancelled' %}
+                          <span class="text-gray-600 px-3 py-1 text-xs border border-gray-600 rounded">Отменен</span>
+                        {% endif %}
                     </div>
                   </td>
                 </tr>
@@ -591,6 +619,25 @@
                   <div class="text-right">
                     <div class="text-lg font-bold text-green-600">{{ response.price }} ₸</div>
                     <div class="text-xs text-gray-500">{{ response.created_at|date:"d.m.Y" }}</div>
+                    <div class="mt-1">
+                      {% if response.status == 'pending' %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          Ожидает
+                        </span>
+                      {% elif response.status == 'accepted' %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Принят
+                        </span>
+                      {% elif response.status == 'rejected' %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          Отклонен
+                        </span>
+                      {% elif response.status == 'cancelled' %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          Отменен
+                        </span>
+                      {% endif %}
+                    </div>
                   </div>
                 </div>
                 
@@ -608,12 +655,26 @@
                   <button onclick="openQuickProfileModal({{ response.performer.id }})" class="flex-1 bg-indigo-100 text-indigo-700 py-2 px-3 rounded-xl font-medium">
                     Профиль
                   </button>
-                  <button onclick="acceptResponse({{ response.id }})" class="bg-green-100 text-green-700 py-2 px-3 rounded-xl font-medium whitespace-nowrap">
-                    <i class="ri-check-line"></i>
-                  </button>
-                  <button onclick="rejectResponse({{ response.id }})" class="bg-red-100 text-red-700 py-2 px-3 rounded-xl font-medium whitespace-nowrap">
-                    <i class="ri-close-line"></i>
-                  </button>
+                  {% if response.status == 'pending' %}
+                    <button onclick="acceptResponse({{ response.id }})" class="bg-green-100 text-green-700 py-2 px-3 rounded-xl font-medium whitespace-nowrap">
+                      <i class="ri-check-line"></i>
+                    </button>
+                    <button onclick="rejectResponse({{ response.id }})" class="bg-red-100 text-red-700 py-2 px-3 rounded-xl font-medium whitespace-nowrap">
+                      <i class="ri-close-line"></i>
+                    </button>
+                  {% elif response.status == 'accepted' %}
+                    <span class="bg-green-100 text-green-700 py-2 px-3 rounded-xl font-medium whitespace-nowrap">
+                      <i class="ri-check-line"></i> Принят
+                    </span>
+                  {% elif response.status == 'rejected' %}
+                    <span class="bg-red-100 text-red-700 py-2 px-3 rounded-xl font-medium whitespace-nowrap">
+                      <i class="ri-close-line"></i> Отклонен
+                    </span>
+                  {% elif response.status == 'cancelled' %}
+                    <span class="bg-gray-100 text-gray-700 py-2 px-3 rounded-xl font-medium whitespace-nowrap">
+                      <i class="ri-close-line"></i> Отменен
+                    </span>
+                  {% endif %}
                 </div>
               </div>
               {% empty %}
@@ -784,7 +845,7 @@
             <div class="space-y-6">
               <!-- Кнопка настроек -->
               <div class="mb-4">
-                <a href="{% url 'main:profile_settings' %}" class="w-full inline-flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <a href="{% url 'main:profile_settings' %}?return_url={{ request.path }}" class="w-full inline-flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                   <i class="ri-settings-line mr-2"></i>
                   Настройки профиля
                 </a>

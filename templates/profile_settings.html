@@ -26,6 +26,7 @@
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <form method="post" enctype="multipart/form-data" class="space-y-6">
             {% csrf_token %}
+            <input type="hidden" name="return_url" value="{{ request.GET.return_url|default:request.META.HTTP_REFERER|default:'' }}">
             
                 <!-- Profile Photo -->
                 <div class="flex items-center space-x-6">
@@ -144,7 +145,7 @@
                             >
                         <option value="">Выберите тип услуги</option>
                                 {% for service in service_types %}
-                                    <option value="{{ service.code }}" {% if user.service_type and user.service_type.code == service.code %}selected{% endif %}>
+                                    <option value="{{ service.id }}" {% if user.service_type and user.service_type.id == service.id %}selected{% endif %}>
                                         {{ service.name }}
                                     </option>
                         {% endfor %}

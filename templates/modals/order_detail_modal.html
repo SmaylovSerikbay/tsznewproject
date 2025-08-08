@@ -48,11 +48,18 @@
 
 <script>
 function openOrderDetailModal(orderId, action = 'view') {
+  console.log('openOrderDetailModal called with:', orderId, action);
+  
   const modal = document.getElementById('orderDetailModal');
   const title = document.getElementById('orderDetailTitle');
   const titleMobile = document.getElementById('orderDetailTitleMobile');
   const content = document.getElementById('orderDetailContent');
   const contentMobile = document.getElementById('orderDetailContentMobile');
+  
+  if (!modal) {
+    console.error('Modal element not found!');
+    return;
+  }
   
   // Устанавливаем заголовок
   const titleText = action === 'respond' ? 'Откликнуться на заявку' : 'Детали заявки';
@@ -266,31 +273,30 @@ function showResponseForm(orderId) {
           <p class="text-gray-500 text-sm">Предложите свои услуги</p>
         </div>
         
-        <form id="responseForm" onsubmit="submitResponse(event, ${orderId})" class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div class="md:col-span-2">
-              <label class="block font-medium text-gray-700 mb-1 text-sm">Ваша цена (₸)</label>
-              <input type="number" id="responsePrice" name="price" required min="0" 
-                     class="w-full px-3 py-2 border border-gray-300 rounded-lg text-base focus:border-blue-500 focus:outline-none transition-colors"
-                     placeholder="Цена">
-            </div>
-            <div class="flex items-end">
-              <button type="submit" class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 px-4 rounded-lg font-medium text-sm hover:from-blue-600 hover:to-purple-700 transition-all shadow-sm hover:shadow-md">
-                <i class="ri-send-plane-line mr-1"></i> Откликнуться
-              </button>
-            </div>
+        <form id="responseForm" class="space-y-4">
+          <div>
+            <label class="block font-medium text-gray-700 mb-1 text-sm">Ваша цена (₸) *</label>
+            <input type="number" id="responsePrice" name="price" required min="0" step="100"
+                   class="w-full px-3 py-3 border border-gray-300 rounded-lg text-base focus:border-blue-500 focus:outline-none transition-colors"
+                   placeholder="Введите цену"
+                   oninput="window.currentResponsePrice = this.value.trim();"
+                   onblur="window.currentResponsePrice = this.value.trim();">
           </div>
           
           <div>
             <label class="block font-medium text-gray-700 mb-1 text-sm">Сообщение</label>
-            <textarea id="responseMessage" name="message" rows="3" 
-                      class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-vertical focus:border-blue-500 focus:outline-none transition-colors"
-                      placeholder="Расскажите о своем опыте..."></textarea>
+            <textarea id="responseMessage" name="message" rows="4" 
+                      class="w-full px-3 py-3 border border-gray-300 rounded-lg text-sm resize-vertical focus:border-blue-500 focus:outline-none transition-colors"
+                      placeholder="Расскажите о своем опыте, услугах..."
+                      oninput="window.currentResponseMessage = this.value.trim();"></textarea>
           </div>
           
-          <div class="flex justify-end pt-2">
-            <button type="button" onclick="closeModal('orderDetailModal')" class="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-50 transition-colors">
+          <div class="flex gap-3 pt-2">
+            <button type="button" onclick="closeModal('orderDetailModal')" class="flex-1 px-4 py-3 border border-gray-300 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-50 transition-colors">
               Отмена
+            </button>
+            <button type="button" onclick="submitResponseClick(${orderId})" class="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-4 rounded-lg font-medium text-sm hover:from-blue-600 hover:to-purple-700 transition-all shadow-sm hover:shadow-md">
+              <i class="ri-send-plane-line mr-1"></i> Откликнуться
             </button>
           </div>
         </form>
@@ -298,21 +304,32 @@ function showResponseForm(orderId) {
     </div>
   `;
   
-  content.innerHTML = formHtml;
-  contentMobile.innerHTML = formHtml;
+  if (content) {
+    content.innerHTML = formHtml;
+  }
+  
+  if (contentMobile) {
+    contentMobile.innerHTML = formHtml;
+  }
+  
+
+  
+
 }
 
-function submitResponse(event, orderId) {
-  event.preventDefault();
-  
-  const price = document.getElementById('responsePrice').value;
-  const message = document.getElementById('responseMessage').value;
+function submitResponseData(orderId, price, message, submitBtn) {
+  console.log('submitResponseData called for orderId:', orderId, 'price:', price, 'message:', message);
+  console.log('Price type:', typeof price, 'Price value:', price);
+  console.log('Message type:', typeof message, 'Message value:', message);
   
   // Показываем индикатор загрузки
-  const submitBtn = event.target.querySelector('button[type="submit"]');
-  const originalText = submitBtn.innerHTML;
-  submitBtn.innerHTML = '<i class="ri-loader-4-line" style="animation: spin 1s linear infinite;"></i> Отправка...';
-  submitBtn.disabled = true;
+  const originalText = submitBtn ? submitBtn.innerHTML : '';
+  if (submitBtn) {
+    submitBtn.innerHTML = '<i class="ri-loader-4-line" style="animation: spin 1s linear infinite;"></i> Отправка...';
+    submitBtn.disabled = true;
+  }
+  
+  console.log('Sending request with data:', { price, message });
   
   fetch(`/order/${orderId}/respond/`, {
     method: 'POST',
@@ -321,38 +338,194 @@ function submitResponse(event, orderId) {
       'X-CSRFToken': getCookie('csrftoken')
     },
     body: JSON.stringify({
-      price: price,
+      price: parseFloat(price),
       message: message
     })
   })
-  .then(response => response.json())
+  .then(response => {
+    console.log('Response status:', response.status);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
   .then(data => {
+    console.log('Response data:', data);
     if (data.success) {
-             // Показываем успех
-       document.getElementById('orderDetailContent').innerHTML = `
-         <div class="text-center py-16">
-           <div class="w-20 h-20 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-             <i class="ri-check-line text-white text-4xl"></i>
-           </div>
-           <h3 class="text-2xl font-bold text-green-600 mb-4">Отклик отправлен!</h3>
-           <p class="text-gray-600 text-lg mb-8 max-w-md mx-auto">Заказчик получит уведомление о вашем отклике и свяжется с вами в ближайшее время</p>
-           <button onclick="closeModal('orderDetailModal')" class="bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-8 rounded-lg font-semibold text-lg hover:from-green-600 hover:to-green-700 transition-all shadow-md hover:shadow-lg">
-             Закрыть
-           </button>
-         </div>
-       `;
+      // Показываем успех для обеих версий (desktop и mobile)
+      const successHtml = `
+        <div class="text-center py-16">
+          <div class="w-20 h-20 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <i class="ri-check-line text-white text-4xl"></i>
+          </div>
+          <h3 class="text-2xl font-bold text-green-600 mb-4">Отклик отправлен!</h3>
+          <p class="text-gray-600 text-lg mb-8 max-w-md mx-auto">Заказчик получит уведомление о вашем отклике и свяжется с вами в ближайшее время</p>
+          <button onclick="closeModal('orderDetailModal')" class="bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-8 rounded-lg font-semibold text-lg hover:from-green-600 hover:to-green-700 transition-all shadow-md hover:shadow-lg">
+            Закрыть
+          </button>
+        </div>
+      `;
+      
+      // Обновляем контент для обеих версий
+      const desktopContent = document.getElementById('orderDetailContent');
+      const mobileContent = document.getElementById('orderDetailContentMobile');
+      
+      if (desktopContent) desktopContent.innerHTML = successHtml;
+      if (mobileContent) mobileContent.innerHTML = successHtml;
+      
+      // Вызываем глобальную функцию успеха если она есть
+      if (typeof window.onResponseSuccess === 'function') {
+        window.onResponseSuccess();
+      }
     } else {
-      alert('Ошибка: ' + (data.error || 'Неизвестная ошибка'));
-      submitBtn.innerHTML = originalText;
-      submitBtn.disabled = false;
+      const errorMessage = data.error || data.message || 'Неизвестная ошибка';
+      console.error('Server error:', errorMessage);
+      alert('Ошибка: ' + errorMessage);
+      if (submitBtn) {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }
     }
   })
   .catch(error => {
-    console.error('Error:', error);
-    alert('Ошибка при отправке отклика');
-    submitBtn.innerHTML = originalText;
-    submitBtn.disabled = false;
+    console.error('Fetch error:', error);
+    alert('Ошибка при отправке отклика: ' + error.message);
+    if (submitBtn) {
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+    }
   });
+}
+
+// Простая функция для обработки клика по кнопке отклика
+function submitResponseClick(orderId) {
+  // Получаем элементы формы - ищем во всех возможных местах
+  let priceInput = document.getElementById('responsePrice');
+  let messageInput = document.getElementById('responseMessage');
+  
+  // Если не нашли по ID, ищем по селектору
+  if (!priceInput) {
+    priceInput = document.querySelector('input[name="price"]');
+  }
+  
+  if (!messageInput) {
+    messageInput = document.querySelector('textarea[name="message"]');
+  }
+  
+  // Если все еще не нашли, ищем в модальном окне
+  if (!priceInput || !messageInput) {
+    const modal = document.getElementById('orderDetailModal');
+    if (modal) {
+      if (!priceInput) {
+        priceInput = modal.querySelector('input[name="price"]');
+      }
+      if (!messageInput) {
+        messageInput = modal.querySelector('textarea[name="message"]');
+      }
+    }
+  }
+  
+  if (!priceInput || !messageInput) {
+    console.error('Form elements not found:', { priceInput, messageInput });
+    alert('Ошибка: элементы формы не найдены. Попробуйте обновить страницу.');
+    return;
+  }
+  
+
+  
+  // Получаем значения полей - пробуем разные способы
+  let price = priceInput.value;
+  let message = messageInput.value;
+  
+  // Если основной способ не работает, пробуем глобальные переменные
+  if (!price || price === '') {
+    price = window.currentResponsePrice || '';
+  }
+  
+  // То же самое для сообщения
+  if (!message || message === '') {
+    message = window.currentResponseMessage || '';
+  }
+  
+  // Если все еще не работает, пробуем альтернативные способы
+  if (!price || price === '') {
+    // Способ 1: через data-атрибут
+    price = priceInput.getAttribute('data-current-value') || '';
+    
+    // Способ 2: через getAttribute
+    if (!price || price === '') {
+      price = priceInput.getAttribute('value') || '';
+    }
+    
+    // Способ 3: через defaultValue
+    if (!price || price === '') {
+      price = priceInput.defaultValue || '';
+    }
+  }
+  
+  // Очищаем от пробелов
+  price = price ? price.trim() : '';
+  message = message ? message.trim() : '';
+  
+  // Проверяем, что цена указана
+  if (!price || price === '' || price.length === 0) {
+    alert('Пожалуйста, укажите цену');
+    priceInput.focus();
+    return;
+  }
+  
+  // Проверяем, что цена является числом
+  if (isNaN(price) || parseFloat(price) <= 0) {
+    alert('Пожалуйста, укажите корректную цену');
+    priceInput.focus();
+    return;
+  }
+  
+  // Находим кнопку для показа индикатора загрузки
+  const submitBtn = document.querySelector('button[onclick*="submitResponseClick"]');
+  
+  // Отправляем отклик
+  submitResponseData(orderId, price, message, submitBtn);
+}
+
+// Оставляем старую функцию для совместимости
+function submitResponse(event, orderId) {
+  event.preventDefault();
+  
+  console.log('submitResponse called for orderId:', orderId);
+  
+  // Получаем элементы формы
+  const priceInput = document.getElementById('responsePrice');
+  const messageInput = document.getElementById('responseMessage');
+  const submitBtn = event.target.querySelector('button[type="submit"]');
+  
+  if (!priceInput || !messageInput || !submitBtn) {
+    console.error('Form elements not found:', { priceInput, messageInput, submitBtn });
+    alert('Ошибка: элементы формы не найдены');
+    return;
+  }
+  
+  const price = priceInput.value.trim();
+  const message = messageInput.value.trim();
+  
+  console.log('Form values:', { price, message });
+  
+  // Проверяем, что цена указана
+  if (!price || price === '') {
+    alert('Пожалуйста, укажите цену');
+    priceInput.focus();
+    return;
+  }
+  
+  // Проверяем, что цена является числом
+  if (isNaN(price) || parseFloat(price) <= 0) {
+    alert('Пожалуйста, укажите корректную цену');
+    priceInput.focus();
+    return;
+  }
+  
+  // Используем новую функцию для отправки данных
+  submitResponseData(orderId, price, message, submitBtn);
 }
 
 

@@ -315,7 +315,7 @@ class Order(models.Model):
     guest_count = models.IntegerField(validators=[MinValueValidator(1)])
     description = models.TextField(blank=True)
     budget = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Бюджет', default=0)
-    services = models.JSONField()  # Хранит список выбранных услуг
+    services = models.JSONField(default=list)  # Хранит список выбранных услуг
     selected_performers = models.JSONField(default=dict, blank=True, help_text="Выбранные исполнители по услугам: {service_type: performer_id}")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new')
     created_at = models.DateTimeField(auto_now_add=True)

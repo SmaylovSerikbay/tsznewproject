@@ -90,7 +90,7 @@
                     {% endif %}
                     
                     {% if user.is_authenticated and user.id == profile_user.id %}
-                        <a href="{% url 'main:profile_settings' %}" class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors flex items-center justify-center">
+                        <a href="{% url 'main:profile_settings' %}?return_url={{ request.path }}" class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors flex items-center justify-center">
                             <i class="ri-settings-3-line mr-2"></i>
                             Настройки
                         </a>

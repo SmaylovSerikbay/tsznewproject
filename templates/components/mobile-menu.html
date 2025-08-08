@@ -22,7 +22,7 @@
                         <span>Профиль</span>
                     </a>
                     
-                    <a href="{% url 'main:profile_settings' %}" class="mobile-nav-link">
+                    <a href="{% url 'main:profile_settings' %}?return_url={{ request.path }}" class="mobile-nav-link">
                         <i class="icon-settings"></i>
                         <span>Настройки</span>
                     </a>

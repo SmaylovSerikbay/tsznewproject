@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from .models import User, Order, Category, Review, Portfolio, Tariff, BusyDate, Message, OrderResponse, OTP, BookingProposal, ServiceType, City
 from .forms import UserRegistrationForm, UserProfileForm, OrderForm, ReviewForm, PortfolioForm, TariffForm
 from .services import WhatsAppOTPService
+from .notifications import WhatsAppNotificationService
 import json
 import os
 from datetime import datetime, timedelta, date
@@ -394,11 +395,30 @@ def profile_settings(request):
         if request.user.user_type == 'performer':
             request.user.company_name = request.POST.get('company_name', '')
             
-            # Обрабатываем типы услуг (может быть несколько)
+            # Обрабатываем тип услуги (может быть один или несколько)
+            service_type_id = request.POST.get('service_type')
             service_types_ids = request.POST.getlist('service_types')
-            if service_types_ids:
+            
+            if service_type_id:
                 try:
-                    # Берем первый выбранный тип услуги как основной
+                    # Устанавливаем основной тип услуги
+                    primary_service_type = ServiceType.objects.get(id=service_type_id)
+                    request.user.service_type = primary_service_type
+                    # Сохраняем все выбранные типы услуг в JSON поле
+                    request.user.services = [ServiceType.objects.get(id=st_id).code for st_id in service_types_ids]
+                except ServiceType.DoesNotExist:
+                    error_message = 'Выберите корректную специализацию исполнителя!'
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        from django.http import JsonResponse
+                        return JsonResponse({
+                            'success': False,
+                            'message': error_message
+                        })
+                    messages.error(request, error_message)
+                    return render(request, 'profile_settings.html', {'user': request.user})
+            elif service_types_ids:
+                try:
+                    # Если основной тип не выбран, берем первый из списка
                     primary_service_type = ServiceType.objects.get(id=service_types_ids[0])
                     request.user.service_type = primary_service_type
                     # Сохраняем все выбранные типы услуг в JSON поле
@@ -446,7 +466,14 @@ def profile_settings(request):
             })
         
         messages.success(request, 'Профиль успешно обновлен')
-        return redirect('main:profile_settings')
+        
+        # Определяем, куда перенаправить пользователя после сохранения
+        return_url = request.POST.get('return_url')
+        if return_url and return_url.startswith('/'):
+            return redirect(return_url)
+        else:
+            # По умолчанию возвращаемся на dashboard
+            return redirect('main:dashboard')
         
     # Получаем типы услуг из базы данных
     service_types = ServiceType.objects.filter(is_active=True).order_by('sort_order')
@@ -469,12 +496,13 @@ def dashboard(request):
         # Получаем service_type_code один раз в начале
         service_type_code = request.user.service_type.code if request.user.service_type else None
         
-        # Получаем все новые заявки-запросы, на которые исполнитель еще не откликался
+        # Получаем все новые заявки-запросы, на которые исполнитель еще не откликался или отклик был отменен
         all_orders = Order.objects.filter(
             status='new',
             order_type='request'
         ).exclude(
-            responses__performer=request.user
+            responses__performer=request.user,
+            responses__status__in=['pending', 'accepted', 'rejected']  # Исключаем только активные отклики
         ).order_by('-created_at')
 
         # Фильтруем в Python: только те, где его специализация есть в services и по этой услуге еще не выбран исполнитель
@@ -497,6 +525,12 @@ def dashboard(request):
         print(f"DEBUG: Available orders count: {len(available_orders)}")
         for order in available_orders[:3]:  # Показываем первые 3 заказа для отладки
             print(f"DEBUG: Order {order.id} - services: {order.services}, selected: {order.selected_performers}")
+        
+        # Проверяем отклики пользователя
+        user_responses = OrderResponse.objects.filter(performer=request.user)
+        print(f"DEBUG: User responses count: {user_responses.count()}")
+        for response in user_responses[:3]:
+            print(f"DEBUG: Response {response.id} - order {response.order.id}, status: {response.status}")
         
         # Получаем активные заказы исполнителя
         active_orders = []
@@ -530,16 +564,12 @@ def dashboard(request):
             performer=request.user
         ).select_related('order').order_by('-created_at')
         
-        # Фильтруем отклики: убираем те, где заказ уже в работе и исполнитель выбран
+        # Фильтруем отклики: показываем все отклики, включая отмененные
         filtered_responses = []
         for response in my_responses:
-            # Не показываем отмененные отклики
-            if response.status == 'cancelled':
-                continue
-                
             order = response.order
             if order.status == 'new':
-                # Если заказ новый, показываем отклик
+                # Если заказ новый, показываем отклик (включая отмененные)
                 filtered_responses.append(response)
             elif order.status == 'in_progress':
                 # Если заказ в работе, проверяем, выбран ли исполнитель
@@ -548,10 +578,15 @@ def dashboard(request):
                     # Исполнитель выбран - не показываем в откликах
                     continue
                 else:
-                    # Исполнитель не выбран - показываем отклик
+                    # Исполнитель не выбран - показываем отклик (включая отмененные)
                     filtered_responses.append(response)
         
         my_responses = filtered_responses
+        
+        # Добавляем отладочную информацию для откликов
+        print(f"DEBUG: Filtered responses count: {len(filtered_responses)}")
+        for response in filtered_responses[:3]:
+            print(f"DEBUG: Filtered response {response.id} - order {response.order.id}, status: {response.status}")
         
         # Получаем предложения о бронировании (устаревший механизм)
         # booking_proposals = BookingProposal.objects.filter(
@@ -614,10 +649,10 @@ def dashboard(request):
             status__in=['new', 'in_progress', 'completed']
         ).order_by('-created_at')
         
-        # Получаем отклики на заказы клиента
+        # Получаем отклики на заказы клиента (включая отмененные)
         responses = OrderResponse.objects.filter(
             order__customer=request.user,
-            order__status='new'
+            order__status__in=['new', 'in_progress']
         ).select_related('order', 'performer').order_by('-created_at')
         
         # Получаем бронирования (прямые заказы исполнителей) - включаем отмененные
@@ -954,6 +989,9 @@ def order_detail(request, order_id):
 def create_order_request(request):
     """Создание заявки заказчиком"""
     if request.method == 'POST':
+        print(f"DEBUG create_order_request: POST data = {dict(request.POST)}")
+        print(f"DEBUG create_order_request: user type = {request.user.user_type}")
+        
         if request.user.user_type != 'customer':
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'error': 'Только заказчики могут создавать заявки'}, status=403)
@@ -961,6 +999,10 @@ def create_order_request(request):
             return redirect('main:dashboard')
             
         form = OrderForm(request.POST)
+        print(f"DEBUG create_order_request: form is valid = {form.is_valid()}")
+        if not form.is_valid():
+            print(f"DEBUG create_order_request: form errors = {form.errors}")
+            
         if form.is_valid():
             order = form.save(commit=False)
             order.customer = request.user
@@ -971,28 +1013,42 @@ def create_order_request(request):
             city_name = form.cleaned_data.get('city')
             order.city = city_name
             
-            # Обрабатываем services
-            services = request.POST.get('services', '[]')
-            print(f"DEBUG create_order_request: services from POST = {services}")
-            print(f"DEBUG create_order_request: services.getlist = {request.POST.getlist('services')}")
-            
-            # Если services приходит как список значений из формы
+            # Обрабатываем services из POST данных
             services_list = request.POST.getlist('services')
-            if services_list:
-                order.services = services_list
-            else:
-                # Если services приходит как JSON массив
-                try:
-                    if services.startswith('['):
-                        order.services = json.loads(services)
-                    else:
-                        order.services = []
-                except json.JSONDecodeError:
-                    order.services = []
+            print(f"DEBUG create_order_request: services.getlist = {services_list}")
             
+            # Проверяем, что выбрана хотя бы одна услуга
+            if not services_list:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'errors': {'services': 'Выберите хотя бы одну услугу'},
+                        'message': 'Пожалуйста, исправьте ошибки в форме'
+                    }, status=400)
+                messages.error(request, 'Выберите хотя бы одну услугу')
+                return redirect('main:dashboard')
+            
+            order.services = services_list
             print(f"DEBUG create_order_request: final services = {order.services}")
             
             order.save()
+            
+            # Отправляем уведомления исполнителям о новой заявке
+            try:
+                from .notifications import WhatsAppNotificationService
+                notification_service = WhatsAppNotificationService()
+                
+                # Получаем всех активных исполнителей
+                from .models import User
+                performers = User.objects.filter(
+                    user_type='performer',
+                    is_active=True,
+                    is_phone_verified=True
+                ).select_related('service_type')
+                
+                notification_service.send_new_order_notification(order, performers)
+            except Exception as e:
+                print(f"Error sending new order notifications: {e}")
             
             # Если это AJAX-запрос, возвращаем JSON
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -1010,6 +1066,7 @@ def create_order_request(request):
                 errors = {}
                 for field, field_errors in form.errors.items():
                     errors[field] = field_errors[0] if field_errors else 'Ошибка валидации'
+                print(f"DEBUG create_order_request: returning errors = {errors}")
                 return JsonResponse({
                     'success': False,
                     'errors': errors,
@@ -1139,6 +1196,10 @@ def create_order_booking(request, performer_id):
                 if not BusyDate.objects.filter(user=performer, date=event_date).exists():
                     BusyDate.objects.create(user=performer, date=event_date)
                 
+                # Отправляем уведомление исполнителю о новом бронировании
+                notification_service = WhatsAppNotificationService()
+                notification_service.send_new_booking_notification(booking_order)
+                
                 messages.success(request, 'Исполнитель успешно прикреплен к заявке')
                 return redirect('main:dashboard')
                 
@@ -1169,6 +1230,10 @@ def create_order_booking(request, performer_id):
             # Добавляем дату в занятые (если еще не занята)
             if not BusyDate.objects.filter(user=performer, date=event_date).exists():
                 BusyDate.objects.create(user=performer, date=event_date)
+            
+            # Отправляем уведомление исполнителю о новом бронировании
+            notification_service = WhatsAppNotificationService()
+            notification_service.send_new_booking_notification(order)
             
             messages.success(request, 'Бронирование успешно создано')
             return redirect('main:dashboard')
@@ -1848,6 +1913,10 @@ def order_respond_api(request, order_id):
     """API для отправки отклика на заявку"""
     order = get_object_or_404(Order, id=order_id)
     
+    # Добавляем отладочную информацию
+    print(f"DEBUG order_respond_api: Заказ {order_id}, пользователь {request.user.id}")
+    print(f"DEBUG order_respond_api: Статус заказа: {order.status}, тип: {order.order_type}")
+    
     # Проверяем, что пользователь - исполнитель
     if request.user.user_type != 'performer':
         return JsonResponse({'success': False, 'error': 'Только исполнители могут откликаться на заявки'}, status=403)
@@ -1856,27 +1925,68 @@ def order_respond_api(request, order_id):
     if order.status != 'new' or order.order_type != 'request':
         return JsonResponse({'success': False, 'error': 'Заявка недоступна для отклика'}, status=400)
     
+    # Проверяем, есть ли уже активный отклик от этого исполнителя
+    existing_response = OrderResponse.objects.filter(
+        order=order,
+        performer=request.user,
+        status__in=['pending', 'accepted', 'rejected']
+    ).first()
+    
+    if existing_response:
+        print(f"DEBUG order_respond_api: Уже есть активный отклик {existing_response.id} со статусом {existing_response.status}")
+        return JsonResponse({'success': False, 'error': 'Вы уже откликались на эту заявку'}, status=400)
+    
+    # Проверяем, есть ли отмененный отклик от этого исполнителя
+    cancelled_response = OrderResponse.objects.filter(
+        order=order,
+        performer=request.user,
+        status='cancelled'
+    ).first()
+    
     try:
         data = json.loads(request.body)
         price = data.get('price')
         message = data.get('message', '')
         
+        print(f"DEBUG order_respond_api: Получены данные - цена: {price}, сообщение: {message}")
+        
         if not price:
             return JsonResponse({'success': False, 'error': 'Не указана цена'}, status=400)
         
-        # Создаем отклик
-        OrderResponse.objects.create(
-            order=order,
-            performer=request.user,
-            price=Decimal(price),
-            message=message
-        )
+        # Если есть отмененный отклик, обновляем его
+        if cancelled_response:
+            print(f"DEBUG order_respond_api: Обновляем отмененный отклик {cancelled_response.id}")
+            cancelled_response.price = Decimal(price)
+            cancelled_response.message = message
+            cancelled_response.status = 'pending'
+            cancelled_response.save()
+            response = cancelled_response
+        else:
+            # Создаем новый отклик
+            response = OrderResponse.objects.create(
+                order=order,
+                performer=request.user,
+                price=Decimal(price),
+                message=message
+            )
+        
+        print(f"DEBUG order_respond_api: {'Обновлен' if cancelled_response else 'Создан'} отклик {response.id}")
+        
+        # Отправляем уведомление заказчику
+        try:
+            from .notifications import WhatsAppNotificationService
+            notification_service = WhatsAppNotificationService()
+            notification_service.send_response_notification(response)
+        except Exception as e:
+            print(f"Error sending notification: {e}")
         
         return JsonResponse({'success': True})
         
     except (ValueError, TypeError) as e:
+        print(f"DEBUG order_respond_api: Ошибка парсинга данных: {e}")
         return JsonResponse({'success': False, 'error': 'Неверные данные'}, status=400)
     except Exception as e:
+        print(f"DEBUG order_respond_api: Неожиданная ошибка: {e}")
         return JsonResponse({'success': False, 'error': 'Ошибка сервера'}, status=500)
 
 @login_required
@@ -1960,6 +2070,15 @@ def accept_response(request, response_id):
         )
         
         print(f"DEBUG accept_response: Успешно завершено. Статус заказа: {order.status}")
+        
+        # Отправляем уведомление исполнителю
+        try:
+            from .notifications import WhatsAppNotificationService
+            notification_service = WhatsAppNotificationService()
+            notification_service.send_response_accepted_notification(response)
+        except Exception as e:
+            print(f"Error sending notification: {e}")
+        
         return JsonResponse({
             'success': True,
             'message': f'Исполнитель по услуге {service_type} успешно выбран'
@@ -1981,6 +2100,10 @@ def reject_response(request, response_id):
         if request.user != order.customer:
             return JsonResponse({'error': 'У вас нет прав для отклонения этого отклика'}, status=403)
         
+        # Сохраняем информацию об отклике перед удалением
+        performer = response.performer
+        price = response.price
+        
         # Удаляем отклик
         response.delete()
         
@@ -1993,6 +2116,35 @@ def reject_response(request, response_id):
                 order.performer = None  # Очищаем исполнителя
                 order.status = 'new'
                 order.save()
+                
+                # Отправляем уведомления исполнителям о том, что заявка снова доступна
+                try:
+                    from .notifications import WhatsAppNotificationService
+                    from .models import User
+                    notification_service = WhatsAppNotificationService()
+                    performers = User.objects.filter(
+                        user_type='performer',
+                        is_active=True,
+                        is_phone_verified=True
+                    ).select_related('service_type')
+                    
+                    notification_service.send_new_order_notification(order, performers)
+                except Exception as e:
+                    print(f"Error sending new order notifications: {e}")
+        
+        # Отправляем уведомление исполнителю
+        try:
+            from .notifications import WhatsAppNotificationService
+            notification_service = WhatsAppNotificationService()
+            # Создаем временный объект отклика для уведомления
+            temp_response = type('TempResponse', (), {
+                'order': order,
+                'performer': performer,
+                'price': price
+            })()
+            notification_service.send_response_rejected_notification(temp_response)
+        except Exception as e:
+            print(f"Error sending notification: {e}")
         
         return JsonResponse({
             'success': True,
@@ -2031,11 +2183,40 @@ def cancel_order_api(request, order_id):
             order.status = 'new'
             order.save()
             
+            # Отправляем уведомления об отмене заказа
+            try:
+                from .notifications import WhatsAppNotificationService
+                notification_service = WhatsAppNotificationService()
+                notification_service.send_order_cancelled_notification(order, request.user)
+            except Exception as e:
+                print(f"Error sending notification: {e}")
+            
+            # Отправляем уведомления исполнителям о том, что заявка снова доступна
+            try:
+                from .models import User
+                performers = User.objects.filter(
+                    user_type='performer',
+                    is_active=True,
+                    is_phone_verified=True
+                ).select_related('service_type')
+                
+                notification_service.send_new_order_notification(order, performers)
+            except Exception as e:
+                print(f"Error sending new order notifications: {e}")
+            
             return JsonResponse({'success': True, 'message': 'Заказ возвращен в активное состояние'})
         
         # Если заказ новый, отменяем его
         order.status = 'cancelled'
         order.save()
+        
+        # Отправляем уведомления об отмене заказа
+        try:
+            from .notifications import WhatsAppNotificationService
+            notification_service = WhatsAppNotificationService()
+            notification_service.send_order_cancelled_notification(order, request.user)
+        except Exception as e:
+            print(f"Error sending notification: {e}")
         
         return JsonResponse({'success': True, 'message': 'Заказ успешно отменен'})
     except Order.DoesNotExist:
@@ -2047,8 +2228,10 @@ def cancel_order_api(request, order_id):
 @require_POST
 def complete_order_api(request, order_id):
     """API для завершения заказа"""
+    print(f"DEBUG complete_order_api: Заказ {order_id}, пользователь {request.user.id}")
     try:
         order = Order.objects.get(id=order_id)
+        print(f"DEBUG complete_order_api: Найден заказ {order.id}, статус: {order.status}")
         
         # Определяем исполнителя заказа
         performer = order.performer
@@ -2057,17 +2240,24 @@ def complete_order_api(request, order_id):
             first_performer_id = list(order.selected_performers.values())[0]
             performer = User.objects.get(id=first_performer_id)
         
+        print(f"DEBUG complete_order_api: Исполнитель: {performer}, Заказчик: {order.customer}")
+        print(f"DEBUG complete_order_api: Текущий пользователь: {request.user}")
+        
         # Проверяем, что это исполнитель или заказчик заказа
         if request.user not in [performer, order.customer]:
+            print(f"DEBUG complete_order_api: Нет прав - пользователь не участник заказа")
             return JsonResponse({'success': False, 'error': 'Только участники заказа могут завершить заказ'})
         
         # Проверяем, что заказ в работе
         if order.status != 'in_progress':
+            print(f"DEBUG complete_order_api: Заказ не в работе, статус: {order.status}")
             return JsonResponse({'success': False, 'error': 'Можно завершить только заказ в работе'})
         
         # Завершаем заказ
         order.status = 'completed'
         order.save()
+        
+        print(f"DEBUG complete_order_api: Заказ {order.id} завершен")
         
         # Освобождаем дату из занятых дат исполнителя при завершении заказа
         from datetime import date
@@ -2077,6 +2267,17 @@ def complete_order_api(request, order_id):
                 user=performer, 
                 date=order.event_date
             ).delete()
+            print(f"DEBUG complete_order_api: Освобождена занятая дата для исполнителя {performer.id}")
+        
+        print(f"DEBUG complete_order_api: Заказ успешно завершен")
+        
+        # Отправляем уведомления о завершении заказа
+        try:
+            from .notifications import WhatsAppNotificationService
+            notification_service = WhatsAppNotificationService()
+            notification_service.send_order_completed_notification(order)
+        except Exception as e:
+            print(f"Error sending notification: {e}")
         
         return JsonResponse({'success': True, 'message': 'Заказ успешно завершен'})
     except Order.DoesNotExist:
@@ -2170,6 +2371,10 @@ def performer_cancel_booking_api(request, order_id):
             date=order.event_date
         ).delete()
         
+        # Отправляем уведомление заказчику об отмене бронирования исполнителем
+        notification_service = WhatsAppNotificationService()
+        notification_service.send_booking_cancelled_by_performer_notification(order)
+        
         return JsonResponse({'success': True, 'message': 'Бронирование успешно отменено'})
     except Order.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Заказ не найден'})
@@ -2243,6 +2448,10 @@ def customer_cancel_booking_api(request, order_id):
             original_request.selected_performers = selected_performers
             original_request.save()
         
+        # Отправляем уведомление исполнителю об отмене бронирования заказчиком
+        notification_service = WhatsAppNotificationService()
+        notification_service.send_booking_cancelled_by_customer_notification(order)
+        
         # Освобождаем дату из занятых дат исполнителя
         from main.models import BusyDate
         BusyDate.objects.filter(
@@ -2282,6 +2491,10 @@ def accept_booking_api(request, order_id):
         order.status = 'in_progress'
         order.save()
         
+        # Отправляем уведомление заказчику о принятии бронирования
+        notification_service = WhatsAppNotificationService()
+        notification_service.send_booking_accepted_notification(order)
+        
         return JsonResponse({'success': True, 'message': 'Бронирование успешно принято'})
     except Order.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Заказ не найден'})
@@ -2319,6 +2532,10 @@ def reject_booking_api(request, order_id):
             user=request.user, 
             date=order.event_date
         ).delete()
+        
+        # Отправляем уведомление заказчику об отклонении бронирования
+        notification_service = WhatsAppNotificationService()
+        notification_service.send_booking_rejected_notification(order)
         
         return JsonResponse({'success': True, 'message': 'Бронирование отклонено'})
     except Order.DoesNotExist:
@@ -2371,12 +2588,25 @@ def cancel_response(request, response_id):
             return JsonResponse({'error': 'У вас нет прав для отмены этого отклика'}, status=403)
         
         print(f"DEBUG cancel_response: Permission granted, cancelling response...")
+        print(f"DEBUG cancel_response: Current status = {response.status}")
         
         # Отменяем отклик
         response.status = 'cancelled'
+        print(f"DEBUG cancel_response: New status = {response.status}")
         response.save()
         
+        # Проверяем, что изменения сохранились
+        response.refresh_from_db()
+        print(f"DEBUG cancel_response: Status after save = {response.status}")
         print(f"DEBUG cancel_response: Response cancelled successfully")
+        
+        # Отправляем уведомление заказчику об отмене отклика
+        try:
+            from .notifications import WhatsAppNotificationService
+            notification_service = WhatsAppNotificationService()
+            notification_service.send_response_cancelled_notification(response)
+        except Exception as e:
+            print(f"Error sending notification: {e}")
         
         return JsonResponse({
             'success': True,
